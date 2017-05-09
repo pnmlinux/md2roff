@@ -2,14 +2,15 @@
 *	md2roff.c
 *	A utility to convert markdown documents to troff.
 *
-*	Nicholas Christopoulos (mailto:nereus@freemail.gr)
+*	Copyright (C) 2017, Nicholas Christopoulos (mailto:nereus@freemail.gr)
 *
 *	License GPL3+
 *	CC: std C99
 *	history: 20017-05-08, created
 *
-*	Manual:
-*	http://man7.org/linux/man-pages/man7/groff_man.7.html
+*	This program is free software; you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License.
+*	See LICENSE for details.
 */
 
 #include <stdbool.h>
@@ -175,6 +176,7 @@ void roff(int type, ...)
 		break;
 	case ol_open:
 		stk_list[stk_list_p] = ol;
+		stk_count[stk_list_p] = 1;
 		stk_list_p ++;
 		if ( opt_use_mdoc )
 			puts(".Bl -enum -offset indent");
@@ -183,6 +185,7 @@ void roff(int type, ...)
 		break;
 	case ul_open:
 		stk_list[stk_list_p] = ul;
+		stk_count[stk_list_p] = 1;
 		stk_list_p ++;
 		if ( opt_use_mdoc )
 			puts(".Bl -bullet -offset indent");
@@ -370,13 +373,16 @@ void md2roff(const char *docname, const char *source)
 			if ( strncmp(p+1, "===", 3) == 0
 				|| strncmp(p+1, "---", 3) == 0
 				|| strncmp(p+1, "***", 3) == 0 ) {
+				char rc = *(p+1);
 				p = strchr(p+1, '\n');
 				if ( !p )
 					return;
-				if ( title_level == 0 ) {
-					title_level ++; // first time... do something different?
+
+				// this is ruler or section
+				if ( rc == '=' )
 					roff(new_sh);
-					}
+				else if ( rc == '-' )
+					roff(new_ss);
 				else
 					roff(new_sh);
 				}
