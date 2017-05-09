@@ -8,7 +8,8 @@ md2roff [*OPTION*]... [*FILE*]...
 
 ## DESCRIPTION
 *md2roff* converts the input files to groff (with man package) format
-and prints the result to *stdout*.
+and prints the result to *stdout*. If the *FILE* is '-' then it reads
+from *stdin*.
 
 ## OPTIONS
 

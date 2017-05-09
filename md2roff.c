@@ -344,7 +344,12 @@ int main(int argc, char *argv[])
 {
 	for ( int i = 1; i < argc; i ++ ) {
 		if ( argv[i][0] == '-' ) {
-			if ( strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ) 
+			if ( argv[i][1] == '\0' ) { // read from stdin
+				char *buf = loadfile(NULL);
+				md2roff("stdin", buf);
+				free(buf);
+				}
+			else if ( strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ) 
 				printf("%s", usage);
 			else if ( strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0 ) 
 				printf("%s", version);
