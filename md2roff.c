@@ -13,6 +13,7 @@
 */
 
 #include <stdbool.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -118,12 +119,17 @@ void md2roff(const char *docname, const char *source)
 	puts(".\\\" troff document, requires man package");
 	puts(".\\\" md2roff file.md | groff -Tutf8 -man | $PAGER");
 
-	if ( strncmp(p, "#TH ", 4) == 0 ) {
+	if ( *p == '#' && isspace(*(p+1)) ) {
 		printf(".TH ");
-		p = println(p+4);
+		p = println(p+2);
 		}
-	else
-		printf(".TH %s 7 document %s\n", docname, docname);
+	else {
+		time_t tt = time(0);   // get time now
+		struct tm *t = localtime(&tt);
+		printf(".TH %s 7 %d-%02d-%02d document\n",
+			   docname,
+			   t->tm_year+1900, t->tm_mon+1, t->tm_mday);
+		}
 	
 	dest = (char *) malloc(8192);
 	d = dest;
@@ -134,9 +140,7 @@ void md2roff(const char *docname, const char *source)
 			if ( strncmp(p, "```", 3) == 0 ) {
 				p += 3;
 				bcode = false;
-				puts(".fi");
-				puts(".RE");
-				puts(".ft P");
+				printf(".fi\n.RE\n.ft P\n");
 				continue;
 				}
 			else {
@@ -155,7 +159,7 @@ void md2roff(const char *docname, const char *source)
 		// beginning of line
 		if ( bline ) {
 			bline = false;
-			if ( *p == '\n' ) {
+			if ( *p == '\n' ) { // empty line
 				if ( inside_list ) {
 					puts(".LE");
 					inside_list = false;
@@ -165,7 +169,7 @@ void md2roff(const char *docname, const char *source)
 				p ++;
 				continue;
 				}
-			else if ( *p == '#' ) {
+			else if ( *p == '#' ) { // header
 				pnext = strchr(p, '\n');
 				if ( pnext ) {
 					if ( *(pnext-1) != '#' ) {
@@ -173,9 +177,15 @@ void md2roff(const char *docname, const char *source)
 						while ( *p == '#' ) { level ++; p ++; }
 						while ( *p == ' ' || *p == '\t' ) p ++;
 						switch ( level ) {
-						case 1: printf(".SH "); break;
+						case 1: printf(".SH "); break; // TH?
 						case 2: printf(".SH "); break;
-						default: printf(".SS ");
+						case 3: printf(".SS "); break;
+						case 4:
+						default:
+							printf(".TP\n\\fB");
+							p = println(p);
+							printf("\\fR");
+							continue;
 							}
 						}
 					else {
@@ -186,7 +196,8 @@ void md2roff(const char *docname, const char *source)
 						}
 					}
 				}
-			else if ( (*(p+1) == ' ' || *(p+1) == '\t') && (*p == '*' || *p == '+' || *p == '-') ) {
+			else if ( (*(p+1) == ' ' || *(p+1) == '\t')
+				&& (*p == '*' || *p == '+' || *p == '-') ) { // unordered list
 				if ( inside_list ) {
 					puts(".LE 1");
 					}
@@ -202,7 +213,7 @@ void md2roff(const char *docname, const char *source)
 				p ++;
 				continue;
 				}
-			else if ( isdigit(*p) ) {
+			else if ( isdigit(*p) ) { // ordered list
 				char	num[16], *n;
 				const char *pstub = p;
 
@@ -212,7 +223,7 @@ void md2roff(const char *docname, const char *source)
 				*n = '\0';
 				if ( *p == '.' ) {
 					if ( inside_list ) {
-						puts("\n.LE 1");
+						puts("\n.LE");
 						}
 					else {
 						puts(".AL");
@@ -220,16 +231,15 @@ void md2roff(const char *docname, const char *source)
 						}
 					printf(".LI\n%s. ", num);
 					p ++;
+					while ( *p == ' ' || *p == '\t' ) p ++;
 					continue;
 					}
 				p = pstub;
 				}
-			else if ( strncmp(p, "```", 3) == 0 ) {
+			else if ( strncmp(p, "```", 3) == 0 ) { // open code-block
 				bcode = true;
 				p += 3;
-				puts(".ft CR");
-				puts(".RS 4");
-				puts(".nf");
+				printf(".ft CR\n.RS 4\n.nf\n");
 				continue;
 				}
 			}
@@ -258,26 +268,38 @@ void md2roff(const char *docname, const char *source)
 			}
 		else if (
 			( *p == '*' && *(p+1) == '*' ) ||
-			( *p == '_' && *(p+1) == '_' ) ) {
+			( *p == '_' && *(p+1) == '_' ) ) { // strong
 			if ( bold ) {
 				bold = false;
 				d = stradd(d, "\\fP");
 				}
 			else {
-				bold = true;
-				d = stradd(d, "\\fB");
+				char pc = (p > source) ? *(p-1) : ' '; 
+				if ( strchr("({[,.;`'\" \t\n", pc) != NULL ) {
+					bold = true;
+					d = stradd(d, "\\fB");
+					}
+				else {
+					*d ++ = *p;
+					*d ++ = *(p+1);
+					}
 				}
 			p += 2;
 			continue;
 			}
-		else if ( *p == '*' ||  *p == '_' ) {
+		else if ( *p == '*' ||  *p == '_' ) { // emphasis
 			if ( italics ) {
 				italics = false;
 				d = stradd(d, "\\fP");
 				}
 			else {
-				italics = true;
-				d = stradd(d, "\\fI");
+				char pc = (p > source) ? *(p-1) : ' '; 
+				if ( strchr("({[,.;`'\" \t\n", pc) != NULL ) {
+					italics = true;
+					d = stradd(d, "\\fI");
+					}
+				else
+					*d ++ = *p;
 				}
 			p ++;
 			continue;
@@ -312,7 +334,7 @@ static char *usage =
 
 static char *version ="\
 md2roff, version 1.0\n\
-Copyright (C) 2017 Nicholas Christopoulos <mailto:nereus@freemail.gr>.\n\
+Copyright (C) 2017 Free Software Foundation, Inc.\n\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n\
 This is free software: you are free to change and redistribute it.\n\
 There is NO WARRANTY, to the extent permitted by law.\n\
