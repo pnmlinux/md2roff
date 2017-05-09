@@ -19,6 +19,10 @@
 #include <string.h>
 #include <errno.h>
 
+/*
+ * Loads the `filename` file into memory and return a pointer to its contents.
+ * The pointer must freed by the user.
+ */
 char *loadfile(const char *filename)
 {
 	int len = -1, c, alloc;
@@ -68,6 +72,10 @@ char *loadfile(const char *filename)
 	return buf;
 }
 
+/*
+ * adds the string 'str' to buffer 'buf' and returns
+ * a pointer to new position in buf.
+ */
 char *stradd(char *buf, const char *str)
 {
 	const char *p = str;
@@ -78,6 +86,10 @@ char *stradd(char *buf, const char *str)
 	return d;
 }
 
+/*
+ * prints the whole line of 'src' and returns pointer
+ * to the next character (the first of the next line).
+ */
 const char *println(const char *src)
 {
 	const char *p = src;
@@ -91,6 +103,9 @@ const char *println(const char *src)
 	return p;
 }
 
+/*
+ * converts a document to groff_man(7)
+ */
 void md2roff(const char *docname, const char *source)
 {
 	const char *p = source, *pnext;
@@ -102,7 +117,14 @@ void md2roff(const char *docname, const char *source)
 
 	puts(".\\\" troff document, requires man package");
 	puts(".\\\" md2roff file.md | groff -Tutf8 -man | $PAGER");
-	printf(".TH %s 7 document %s\n", docname, docname);
+
+	if ( strncmp(p, "#TH ", 4) == 0 ) {
+		printf(".TH ");
+		p = println(p+4);
+		}
+	else
+		printf(".TH %s 7 document %s\n", docname, docname);
+	
 	dest = (char *) malloc(8192);
 	d = dest;
 	while ( *p ) {
@@ -283,10 +305,31 @@ void md2roff(const char *docname, const char *source)
 	free(dest);
 }
 
+/*
+ */
+static char *usage =
+"usage: md2roff file1 .. fileN\n";
+
+static char *version ="\
+md2roff, version 1.0\n\
+Copyright (C) 2017 Nicholas Christopoulos <mailto:nereus@freemail.gr>.\n\
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n\
+This is free software: you are free to change and redistribute it.\n\
+There is NO WARRANTY, to the extent permitted by law.\n\
+";
+
 int main(int argc, char *argv[])
 {
 	for ( int i = 1; i < argc; i ++ ) {
-		if ( argv[i][0] != '-' ) {
+		if ( argv[i][0] == '-' ) {
+			if ( strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ) 
+				printf("%s", usage);
+			else if ( strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0 ) 
+				printf("%s", version);
+			else 
+				fprintf(stderr, "unknown option: [%s]\n", argv[i]);
+			}
+		else {
 			char *buf = loadfile(argv[i]);
 			md2roff(argv[i], buf);
 			free(buf);
