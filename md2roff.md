@@ -19,8 +19,20 @@ displays a short-help text and exits
 #### -v, --version
 displays the program version, copyright and license information and exists.
 
+#### -n, --man
+use man package (linux man pages, default), see
+.BR groff_man (7)
+
+#### -m, --mm
+use mm package, see
+.BR groff_mm (7)
+
+#### -d, --mdoc
+use mdoc package (BSD man pages), see
+.BR groff_mdoc (7)
+
 ## NOTES
-1. If the documents starts with `# ` then creates the TH command with this;
+1. If the documents starts with '# ' then creates the TH command with this;
 otherwise there will be a default TH with the file-name. Actually only the
 title (name) and section are required.
 ```
