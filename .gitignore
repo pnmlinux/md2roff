@@ -1,3 +1,5 @@
 t*
 *.o
-md2troff
+md2roff
+md2roff.1
+
