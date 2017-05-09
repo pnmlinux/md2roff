@@ -443,6 +443,41 @@ void md2roff(const char *docname, const char *source)
 				}
 			d = stradd(d, "\\fP");
 			}
+		else if ( *p == '[' && strncmp(p, "[man:", 5) == 0 ) { // reference to man page
+			pnext = strchr(p+1, ']');
+			if ( pnext ) {
+				// flush buffer
+				*d = '\0';
+				printf("%s\n", dest);
+				d = dest;
+				
+				// print reference
+				roff(man_ref);
+				p += 5;
+				while ( *p != ']' ) {
+					if ( *p == '(' )
+						putchar(' ');
+					putchar(*p);
+					p ++;
+					}
+				}
+			else {
+				*d ++ = *p ++;
+				continue;
+				}
+			}
+//		else if ( *p == '[' ) { // reference to man page
+//			pnext = strchr(p+1, ']');
+//			if ( pnext ) {
+//				char nc = *(pnext+1);
+//				if ( nc == '(' ) // link
+//				if ( nc == '[' ) // reference
+//				}
+//			else {
+//				*d ++ = *p ++;
+//				continue;
+//				}
+			}
 		else {
 			*d = *p;
 			d ++;

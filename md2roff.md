@@ -20,16 +20,13 @@ displays a short-help text and exits
 displays the program version, copyright and license information and exists.
 
 #### -n, --man
-use man package (linux man pages, default), see
-.BR groff_man (7)
+use man package (linux man pages, default), see [man:groff_man(7)]
 
 #### -m, --mm
-use mm package, see
-.BR groff_mm (7)
+use mm package, see [man:groff_mm(7)]
 
 #### -d, --mdoc
-use mdoc package (BSD man pages), see
-.BR groff_mdoc (7)
+use mdoc package (BSD man pages), see [man:groff_mdoc(7)]
 
 ## NOTES
 1. If the documents starts with '# ' then creates the TH command with this;
@@ -57,17 +54,13 @@ $ md2roff mytext.md | groff -Tps -man | okular -
 ```
 
 ## AUTHOR
-Written by Nicholas Christopoulos <nereus@freemail.gr>.
+Written by Nicholas Christopoulos (nereus@freemail.gr).
 
 ## COPYRIGHT
 Copyright (C) 2017 Free Software Foundation, Inc.
-.br
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
-.br
+License GPLv3+: GNU GPL version 3 or later (http://gnu.org/licenses/gpl.html).
 This is free software: you are free to change and redistribute it.
-.br
 There is NO WARRANTY, to the extent permitted by law.
 
 ## SEE ALSO
-.BR groff_man (7),
-.BR man-pages (7)
+[man:groff_man(7)], [man:man-pages(7)]
