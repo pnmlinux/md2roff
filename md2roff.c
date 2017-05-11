@@ -250,7 +250,7 @@ void roff(int type, ...)
 		else if ( opt_use_man ) {
 			if ( stk_list_p ) {
 				if ( stk_list[stk_list_p-1] == ul )
-					puts(".IP \\(bu 4\n");
+					puts(".IP \\(bu 4");
 				else {
 					printf(".IP %d. 4\n", stk_count[stk_list_p-1]);
 					stk_count[stk_list_p-1] ++;
@@ -313,10 +313,17 @@ void roff(int type, ...)
 	va_end(ap);
 }
 
-// write buffer and reset
-#define FLUSHLN(d,bf) { *d = '\0'; d = bf; \
-						while ( isspace(*d) ) d ++; \
-						printf("%s\n", d); d = bf; }
+/*
+ *  write buffer and reset
+ */
+char *flushln(char *d, char *bf)
+{
+	*d = '\0'; d = bf;
+	while ( isspace(*d) ) d ++;
+	if ( *d )
+		puts(d);
+	return bf;
+}
 
 
 /*
@@ -500,7 +507,7 @@ void md2roff(const char *docname, const char *source)
 				roff(new_sh);
 				}
 
-			FLUSHLN(d,dest);
+			d = flushln(d, dest);
 			bline = true;
 			}
 		else if (
@@ -576,7 +583,7 @@ void md2roff(const char *docname, const char *source)
 		else if ( *p == '[' && strncmp(p, "[man:", 5) == 0 ) { // reference to man page
 			pnext = strchr(p+1, ']');
 			if ( pnext ) {
-				FLUSHLN(d,dest);
+				d = flushln(d, dest);
 				
 				// print man reference
 				roff(man_ref);
