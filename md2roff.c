@@ -26,6 +26,7 @@
 bool opt_use_mm = false;
 bool opt_use_mdoc = false;
 bool opt_use_man = true;
+bool opt_use_mom = false;
 
 /*
  * Loads the `filename` file into memory and return a pointer to its contents.
@@ -116,6 +117,7 @@ const char *println(const char *src)
 enum { none, par_end, ln_brk, cblock_end, cblock_open,
 		li_open, li_end, ol_open, ul_open, lst_close,
 		man_ref, ol, ul,
+		bq_open, bq_close,
 		new_sh, new_ss, new_s4 };
 
 /*
@@ -140,7 +142,10 @@ void roff(int type, ...)
 			puts(".PP");
 		break;
 	case ln_brk:
-		puts(".br");
+		if ( opt_use_mom )
+			puts(".BR");
+		else
+			puts(".br");
 		break;
 	case cblock_open:
 		if ( opt_use_mdoc )
@@ -244,6 +249,8 @@ void md2roff(const char *docname, const char *source)
 		puts(".do mso mdoc.tmac"); // BSD man
 	if ( opt_use_man )
 		puts(".do mso man.tmac"); // man only
+	if ( opt_use_mom )
+		puts(".do mso mom.tmac"); // mom
 
 	if ( opt_use_man || opt_use_mdoc ) {
 		if ( *p == '#' && isspace(*(p+1)) ) {
@@ -477,7 +484,7 @@ void md2roff(const char *docname, const char *source)
 //				*d ++ = *p ++;
 //				continue;
 //				}
-			}
+//			}
 		else {
 			*d = *p;
 			d ++;
@@ -525,16 +532,25 @@ int main(int argc, char *argv[])
 				opt_use_mm = false;
 				opt_use_man = true;
 				opt_use_mdoc = false;
+				opt_use_mom = false;
 				}
 			else if ( strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--mm") == 0 ) {
 				opt_use_mm = true;
 				opt_use_man = false;
 				opt_use_mdoc = false;
+				opt_use_mom = false;
 				}
 			else if ( strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--mdoc") == 0 ) {
 				opt_use_mm = false;
 				opt_use_man = false;
 				opt_use_mdoc = true;
+				opt_use_mom = false;
+				}
+			else if ( strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--mom") == 0 ) {
+				opt_use_mm = false;
+				opt_use_man = false;
+				opt_use_mdoc = false;
+				opt_use_mom = true;
 				}
 			else
 				fprintf(stderr, "unknown option: [%s]\n", argv[i]);
