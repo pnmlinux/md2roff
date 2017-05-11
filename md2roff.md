@@ -53,6 +53,8 @@ View a markdown as postscript man page:
 $ md2roff mytext.md | groff -Tps -man | okular -
 ```
 
+This document is example, its written in markdown and produce a nice man page.
+
 ## AUTHOR
 Written by Nicholas Christopoulos (nereus@freemail.gr).
 
