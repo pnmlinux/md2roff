@@ -208,7 +208,7 @@ void roff(int type, ...)
 			}
 		else if ( opt_use_mdoc )
 			puts(".Bl -enum -offset indent");
-		else
+		else if ( opt_use_mm ) 
 			puts(".AL");
 		break;
 
@@ -229,7 +229,7 @@ void roff(int type, ...)
 			else
 				puts(".Bl -dash -offset indent");
 			}
-		else
+		else if ( opt_use_mm ) 
 			puts(".BL");
 		break;
 
@@ -250,9 +250,9 @@ void roff(int type, ...)
 		else if ( opt_use_man ) {
 			if ( stk_list_p ) {
 				if ( stk_list[stk_list_p-1] == ul )
-					puts(".IP \\(bu 4");
+					puts(".IP \\(bu 4\n");
 				else {
-					printf(".IP %d. 4", stk_count[stk_list_p-1]);
+					printf(".IP %d. 4\n", stk_count[stk_list_p-1]);
 					stk_count[stk_list_p-1] ++;
 					}
 				}
@@ -265,6 +265,7 @@ void roff(int type, ...)
 	case li_end:
 		if ( opt_use_mom ) break;
 		if ( opt_use_mdoc ) break;
+		if ( opt_use_man ) break;
 		puts(".LE");
 		break;
 
@@ -311,6 +312,12 @@ void roff(int type, ...)
 	
 	va_end(ap);
 }
+
+// write buffer and reset
+#define FLUSHLN(d,bf) { *d = '\0'; d = bf; \
+						while ( isspace(*d) ) d ++; \
+						printf("%s\n", d); d = bf; }
+
 
 /*
  *	this converts the file 'docname',
@@ -421,11 +428,11 @@ void md2roff(const char *docname, const char *source)
 							}
 						}
 					else {
-						roff(ln_brk);
 						roff(box_open);
-						p = println(p);
-						roff(box_close);
 						roff(ln_brk);
+						p = println(p);
+						roff(ln_brk);
+						roff(box_close);
 						continue;
 						}
 					}
@@ -480,18 +487,20 @@ void md2roff(const char *docname, const char *source)
 					return;
 
 				// this is ruler or section
-				if ( rc == '=' )
-					roff(new_sh);
-				else if ( rc == '-' )
-					roff(new_ss);
-				else
-					roff(new_sh);
+
+				// this does not work well with the
+				// markdown manual
+//				if ( rc == '=' )
+//					roff(new_sh);
+//				else if ( rc == '-' )
+//					roff(new_ss);
+//				else
+//					roff(new_sh);
+
+				roff(new_sh);
 				}
 
-			// flush buffer
-			*d = '\0';
-			printf("%s\n", dest);
-			d = dest;
+			FLUSHLN(d,dest);
 			bline = true;
 			}
 		else if (
@@ -567,10 +576,7 @@ void md2roff(const char *docname, const char *source)
 		else if ( *p == '[' && strncmp(p, "[man:", 5) == 0 ) { // reference to man page
 			pnext = strchr(p+1, ']');
 			if ( pnext ) {
-				// flush buffer
-				*d = '\0';
-				printf("%s\n", dest);
-				d = dest;
+				FLUSHLN(d,dest);
 				
 				// print man reference
 				roff(man_ref);
