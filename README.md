@@ -1,6 +1,6 @@
 # md2roff
 
-A utility to convert markdown documents to Unix \*roff format (man, mdoc, mm packages).
+A utility to convert markdown documents to Unix \*roff format (man, mdoc, mm and mom packages).
 
 License: GPL v3+
 Requires:
