@@ -45,9 +45,9 @@ MT 3.0 or later).
     as "mt.cgi"; if the "plugins" directory doesn't already exist, use
     your FTP program to create it. Your installation should look like
     this:
-
+```
         (mt home)/plugins/Markdown.pl
-
+```
 2.  Once installed, Markdown will appear as an option in Movable Type's
     Text Formatting pop-up menu. This is selectable on a per-post basis.
     Markdown translates your posts to HTML when you publish; the posts
@@ -97,9 +97,9 @@ with BBEdit 5.1 or later and MacPerl 5.6.1 on Mac OS 8.6 or later.)
 
 1.  Copy the "Markdown.pl" file to appropriate filters folder in your
     "BBEdit Support" folder. On Mac OS X, this should be:
-
+```
         BBEdit Support/Unix Support/Unix Filters/
-
+```
     See the BBEdit documentation for more details on the location of
     these folders.
 
@@ -116,23 +116,23 @@ Configuration
 
 By default, Markdown produces XHTML output for tags with empty elements.
 E.g.:
-
+```
     <br />
-
+```
 Markdown can be configured to produce HTML-style tags; e.g.:
-
+```
     <br>
-
+```
 
 ### Movable Type ###
 
 You need to use a special `MTMarkdownOptions` container tag in each
 Movable Type template where you want HTML 4-style output:
-
+```
     <MTMarkdownOptions output='html4'>
         ... put your entry content here ...
     </MTMarkdownOptions>
-
+```
 The easiest way to use MTMarkdownOptions is probably to put the
 opening tag right after your `<body>` tag, and the closing tag right
 before `</body>`.
@@ -140,19 +140,19 @@ before `</body>`.
 To suppress Markdown processing in a particular template, i.e. to
 publish the raw Markdown-formatted text without translation into
 (X)HTML, set the `output` attribute to 'raw':
-
+```
     <MTMarkdownOptions output='raw'>
         ... put your entry content here ...
     </MTMarkdownOptions>
-
+```
 
 ### Command-Line ###
 
 Use the `--html4tags` command-line switch to produce HTML output from a
 Unix-style command line. E.g.:
-
+```
     % perl Markdown.pl --html4tags foo.text
-
+```
 Type `perldoc Markdown.pl`, or read the POD documentation within the
 Markdown.pl source code for more information.
 
@@ -186,11 +186,11 @@ Version History
 +	Tweaked the rules for link definitions so that they must occur
 	within three spaces of the left margin. Thus if you indent a link
 	definition by four spaces or a tab, it will now be a code block.
-	
+```
 		   [a]: /url/  "Indented 3 spaces, this is a link def"
 
 		    [b]: /url/  "Indented 4 spaces, this is a code block"
-	
+```	
 	**IMPORTANT**: This may affect existing Markdown content if it
 	contains link definitions indented by 4 or more spaces.
 
@@ -202,33 +202,33 @@ Version History
 	are now ignored.
 
 +	Inline links using `<` and `>` URL delimiters weren't working:
-
+```
 		like [this](<http://example.com/>)
-
+```
 +	Added a bit of tolerance for trailing spaces and tabs after
 	Markdown hr's.
 
 +	Fixed bug where auto-links were being processed within code spans:
-
+```
 		like this: `<http://example.com/>`
-
+```
 +	Sort-of fixed a bug where lines in the middle of hard-wrapped
 	paragraphs, which lines look like the start of a list item,
 	would accidentally trigger the creation of a list. E.g. a
 	paragraph that looked like this:
-
+```
 		I recommend upgrading to version
 		8. Oops, now this line is treated
 		as a sub-list.
-
+```
 	This is fixed for top-level lists, but it can still happen for
 	sub-lists. E.g., the following list item will not be parsed
 	properly:
-
+```
 		+	I recommend upgrading to version
 			8. Oops, now this line is treated
 			as a sub-list.
-
+```
 	Given Markdown's list-creation rules, I'm not sure this can
 	be fixed.
 
@@ -247,28 +247,28 @@ Version History
 
 +	Auto-linked email address can now optionally contain
 	a 'mailto:' protocol. I.e. these are equivalent:
-
+```
 		<mailto:user@example.com>
 		<user@example.com>
-
+```
 +	Fixed annoying bug where nested lists would wind up with
 	spurious (and invalid) `<p>` tags.
 
 +	You can now write empty links:
-
+```
 		[like this]()
-
+```
 	and they'll be turned into anchor tags with empty href attributes.
 	This should have worked before, but didn't.
 
 +	`***this***` and `___this___` are now turned into
-
+```
 		<strong><em>this</em></strong>
-
+```
 	Instead of
-
+```
 		<strong><em>this</strong></em>
-
+```
 	which isn't valid. (Thanks to Michel Fortin for the fix.)
 
 +	Added a new substitution in `_EncodeCode()`: s/\$/&#036;/g; This
@@ -276,20 +276,20 @@ Version History
 	(sometimes?) interpolates Perl scalars in your article bodies.
 
 +	Fixed problem for links defined with urls that include parens, e.g.:
-
+```
 		[1]: http://sources.wikipedia.org/wiki/Middle_East_Policy_(Chomsky)
-
+```
 	"Chomsky" was being erroneously treated as the URL's title.
 
 +	At some point during 1.0's beta cycle, I changed every sub's
 	argument fetching from this idiom:
-
+```
 		my $text = shift;
-
+```
 	to:
-
+```
 		my $text = shift || return '';
-
+```
 	The idea was to keep Markdown from doing any work in a sub
 	if the input was empty. This introduced a bug, though:
 	if the input to any function was the single-character string
@@ -339,3 +339,7 @@ profits; or business interruption) however caused and on any theory of
 liability, whether in contract, strict liability, or tort (including
 negligence or otherwise) arising in any way out of the use of this
 software, even if advised of the possibility of such damage.
+
+## NOTES by Nicholas
+This file modified since the examples in the original manual wasn't 
+in code block quotes.

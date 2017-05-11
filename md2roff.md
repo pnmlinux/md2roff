@@ -43,7 +43,7 @@ title (name) and section are required.
 the section to '.TP' as in GNU's manuals.
 
 ## BUGS
-I suppose, a lot.
+A lot. Fix and send.
 
 ## EXAMPLE
 View a markdown as console man page:
@@ -58,14 +58,14 @@ $ md2roff mytext.md | groff -Tps -man | okular -
 
 This document is example, its written in markdown and produce a nice man page.
 
-## AUTHOR
-Written by Nicholas Christopoulos (nereus@freemail.gr).
-
 ## COPYRIGHT
 Copyright (C) 2017 Free Software Foundation, Inc.
 License GPLv3+: GNU GPL version 3 or later (http://gnu.org/licenses/gpl.html).
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
+
+## AUTHOR
+Written by Nicholas Christopoulos (nereus@freemail.gr).
 
 ## SEE ALSO
 [man:groff_man(7)], [man:man-pages(7)], 

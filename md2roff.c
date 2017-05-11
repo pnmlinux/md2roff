@@ -163,12 +163,21 @@ void roff(int type, ...)
 	case box_open:
 		if ( opt_use_mom )
 			puts(".DRH");
+		else if ( opt_use_man )
+			puts(".B");
+		else
+			puts(".FT B");
 		break;
 
 	// cartouche bottom
 	case box_close:
 		if ( opt_use_mom )
 			puts(".DRH");
+		else if ( opt_use_man )
+			break;
+//			puts(".P");
+		else 
+			puts(".FT P");
 		break;
 
 	// code block - begin
@@ -188,7 +197,7 @@ void roff(int type, ...)
 		else if ( opt_use_mdoc )
 			printf(".Ed\n");
 		else
-			printf(".EE\n.RE\n");
+			printf("\n.EE\n.RE\n");
 		break;
 
 	// ordered list (1..2..3..)
@@ -563,9 +572,9 @@ void md2roff(const char *docname, const char *source)
 		else if ( *p == '`' ) { // inline code
 			p ++;
 			if ( opt_use_mom )
-				d = stradd(d, "\\*[CODE]");
+				d = stradd(d, "\\*(lq\\*[CODE]");
 			else
-				d = stradd(d, "\\f[CR]");
+				d = stradd(d, "`\\f[CR]");
 			
 			while ( *p != '`' ) {
 				if ( *p == '\0' ) {
@@ -576,9 +585,9 @@ void md2roff(const char *docname, const char *source)
 				}
 
 			if ( opt_use_mom )
-				d = stradd(d, "\\*[CODE OFF]");
+				d = stradd(d, "\\*[CODE OFF]\\*(rq");
 			else
-				d = stradd(d, "\\fP");
+				d = stradd(d, "\\fP'");
 			}
 		else if ( *p == '[' && strncmp(p, "[man:", 5) == 0 ) { // reference to man page
 			pnext = strchr(p+1, ']');
