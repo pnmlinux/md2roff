@@ -29,6 +29,16 @@ bool opt_use_man = true;
 bool opt_use_mom = false;
 
 /*
+ */
+char *strdup (const char *s)
+{
+	char *d = (char *) malloc(strlen(s) + 1); 
+    if ( d )
+		strcpy(d, s);
+    return d;
+}
+
+/*
  * Loads the `filename` file into memory and return a pointer to its contents.
  * The pointer must freed by the user.
  */
@@ -123,6 +133,7 @@ enum { none,
 		man_ref, ol, ul,
 		bq_open, bq_close,
 		box_open, box_close,
+		url_mark,
 		new_sh, new_ss, new_s4 };
 
 /*
@@ -139,6 +150,7 @@ int		stk_list_p = 0;				// top pointer, always points to first free
 void roff(int type, ...)
 {
 	va_list	ap;
+	char	*title, *link;
 
 	va_start(ap, type);
 	switch ( type ) {
@@ -159,6 +171,24 @@ void roff(int type, ...)
 			puts(".br");
 		break;
 
+	// link
+	case url_mark:
+		title = va_arg(ap, char *);
+		link = va_arg(ap, char *);
+		if ( opt_use_man )
+			printf(".UR %s\n%s\n.UE\n", link, title);
+		else if ( opt_use_mdoc ) {
+			if ( strchr(link, '@') )
+				printf(".An %s Aq Mt %s\n", title, link);
+			else
+				printf(".Lk %s \"%s\"\n", link, title);
+			}
+		else if ( opt_use_mm ) // there is no such thing...
+			printf("%s <%s>\n", title, link);
+		else if ( opt_use_mom ) // ??? 
+			printf("%s \\*[UL]%s\\*[ULX]\n", title, link);
+		break;
+		
 	// cartouche top
 	case box_open:
 		if ( opt_use_mom )
@@ -281,7 +311,7 @@ void roff(int type, ...)
 	// new big header/section
 	case new_sh:
 		if ( opt_use_mom )
-			printf(".PP\n");	// todo
+			printf(".HEADING 1 \"");
 		else if ( opt_use_mdoc )
 			printf(".Sh ");
 		else
@@ -291,7 +321,7 @@ void roff(int type, ...)
 	// new medium header/secrtion
 	case new_ss:
 		if ( opt_use_mom )
-			printf(".PP\n");	// todo
+			printf(".HEADING 2 \"");
 		else if ( opt_use_mdoc )
 			printf(".Ss ");
 		else
@@ -301,7 +331,7 @@ void roff(int type, ...)
 	// new small header/secrtion
 	case new_s4:
 		if ( opt_use_mom )
-			printf(".PP\n");	// todo
+			printf(".HEADING 3 \"");
 		else if ( opt_use_mdoc )
 			printf(".Ss ");
 		else
@@ -327,10 +357,14 @@ void roff(int type, ...)
  */
 char *flushln(char *d, char *bf)
 {
-	*d = '\0'; d = bf;
-	while ( isspace(*d) ) d ++;
-	if ( *d )
-		puts(d);
+	if ( d > bf ) {
+		*d = '\0';
+		d = bf;
+		while ( isspace(*d) )
+			d ++;
+		if ( *d )
+			puts(d);
+		}
 	return bf;
 }
 
@@ -341,7 +375,7 @@ char *flushln(char *d, char *bf)
  */
 void md2roff(const char *docname, const char *source)
 {
-	const char *p = source, *pnext;
+	const char *p = source, *pnext, *pstart;
 	char	*dest, *d;
 	bool	bline = true, bcode = false;
 	bool	bold = false, italics = false;
@@ -352,14 +386,21 @@ void md2roff(const char *docname, const char *source)
 	
 	puts(".\\\" *roff document");
 	if ( opt_use_mm )
-		puts(".do mso m.tmac"); // AL BL DL LI LE
+		puts(".do mso m.tmac"); // mm package, AL BL DL LI LE
 	if ( opt_use_mdoc )
 		puts(".do mso mdoc.tmac"); // BSD man
 	if ( opt_use_man )
-		puts(".do mso man.tmac"); // man only
+		puts(".do mso man.tmac"); // LNX man
 	if ( opt_use_mom )
 		puts(".do mso mom.tmac"); // mom
 
+	if ( opt_use_mom ) {
+		printf(".TITLE \"%s\"\n", docname);
+		printf(".AUTHOR \"md2roff\"\n");
+		printf(".PAPER A4\n");
+		printf(".PRINTSTYLE TYPESET\n");
+		printf(".START\n");
+		}
 	if ( opt_use_man || opt_use_mdoc ) {
 		if ( *p == '#' && isspace(*(p+1)) ) {
 			printf(".TH ");
@@ -374,16 +415,21 @@ void md2roff(const char *docname, const char *source)
 			}
 		}
 
-	dest = (char *) malloc(8192);
+	dest = (char *) malloc(64*1024);
 	d = dest;
 	while ( *p ) {
 
+		//////////////////////////////////
 		// inside code block
+		//////////////////////////////////
 		if ( bcode ) {
+			d = flushln(d, dest); // we dont care
+			
 			if ( strncmp(p, "```", 3) == 0 ) { // end of code-block
 				p += 3;
 				bcode = false;
 				roff(cblock_end);
+				d = flushln(d, dest);
 				continue;
 				}
 			else {
@@ -406,10 +452,15 @@ void md2roff(const char *docname, const char *source)
 				}
 			}
 
+		//////////////////////////////////
 		// beginning of line
+		//////////////////////////////////
 		if ( bline ) {
 			bline = false;
+			
 			if ( *p == '\n' ) { // empty line
+				d = flushln(d, dest);
+				
 				if ( stk_list_p ) {
 					roff(li_end);
 					roff(lst_close);
@@ -421,6 +472,8 @@ void md2roff(const char *docname, const char *source)
 				continue;
 				}
 			else if ( *p == '#' ) { // header
+				d = flushln(d, dest);
+				
 				pnext = strchr(p, '\n');
 				if ( pnext ) {
 					if ( *(pnext-1) != '#' ) {
@@ -442,6 +495,7 @@ void md2roff(const char *docname, const char *source)
 								roff(new_s4);
 							continue;
 							}
+						p = println(p);
 						}
 					else {
 						roff(box_open);
@@ -455,6 +509,7 @@ void md2roff(const char *docname, const char *source)
 				}
 			else if ( (*(p+1) == ' ' || *(p+1) == '\t')
 				&& (*p == '*' || *p == '+' || *p == '-') ) { // unordered list
+				d = flushln(d, dest);
 				if ( stk_list_p )
 					roff(li_end);
 				else
@@ -472,6 +527,7 @@ void md2roff(const char *docname, const char *source)
 					*n ++ = *p ++;
 				*n = '\0';
 				if ( *p == '.' ) {
+					d = flushln(d, dest);
 					if ( stk_list_p )
 						roff(li_end);
 					else
@@ -487,36 +543,50 @@ void md2roff(const char *docname, const char *source)
 			else if ( strncmp(p, "```", 3) == 0 ) { // open code-block
 				bcode = true;
 				p += 3;
+				d = flushln(d, dest);
 				roff(cblock_open);
 				continue;
 				}
 			}
 
+		//////////////////////////////////
 		// in line
+		//////////////////////////////////
 		if ( *p == '\n' ) {
 			if ( strncmp(p+1, "===", 3) == 0
 				|| strncmp(p+1, "---", 3) == 0
 				|| strncmp(p+1, "***", 3) == 0 ) {
 				char rc = *(p+1);
+				char	*prevln;
 				p = strchr(p+1, '\n');
 				if ( !p )
 					return;
+				if ( d == dest ) {
+					p ++;
+					continue;
+					}
 
 				// this is ruler or section
-
-				// this does not work well with the
-				// markdown manual
-//				if ( rc == '=' )
-//					roff(new_sh);
-//				else if ( rc == '-' )
-//					roff(new_ss);
-//				else
-//					roff(new_sh);
-
-				roff(new_sh);
+				*d = '\0';
+				prevln = strrchr(dest, '\n');
+				if ( prevln ) {
+					*prevln = '\0';
+					if ( prevln > dest )
+						puts(dest);
+					prevln ++;
+					roff(new_sh);
+					printf("%s\n", prevln);
+					d = dest;
+					}
+				else {
+					roff(new_sh);
+					d = flushln(d, dest);
+					}
+				
+				p ++;
+				continue;
 				}
 
-			d = flushln(d, dest);
 			bline = true;
 			}
 		else if (
@@ -572,7 +642,7 @@ void md2roff(const char *docname, const char *source)
 		else if ( *p == '`' ) { // inline code
 			p ++;
 			if ( opt_use_mom )
-				d = stradd(d, "\\*(lq\\*[CODE]");
+				d = stradd(d, "`\\*[CODE]");
 			else
 				d = stradd(d, "`\\f[CR]");
 			
@@ -585,7 +655,7 @@ void md2roff(const char *docname, const char *source)
 				}
 
 			if ( opt_use_mom )
-				d = stradd(d, "\\*[CODE OFF]\\*(rq");
+				d = stradd(d, "\\*[CODE OFF]'");
 			else
 				d = stradd(d, "\\fP'");
 			}
@@ -609,12 +679,43 @@ void md2roff(const char *docname, const char *source)
 				continue;
 				}
 			}
-//		else if ( *p == '[' ) { // reference to man page
-//			pnext = strchr(p+1, ']');
+		else if ( *p == '[' ) { // markdown link
+			const char *pfin;
+			pstart = p + 1;
+			pnext = strchr(pstart, ']');
+			if ( pnext && ( *(pnext+1) == '(' )
+				 && ((pfin = strchr(pnext+2, ')')) != NULL) ) {
+				char *left = strdup(pstart);
+				char *rght = strdup(pnext+2);
+				bool bimage = false;
+				char *c;
+
+				if ( *(d-1) == '!' ) {
+					*(d-1) = '\0';
+					bimage = true;
+					}
+				d = flushln(d, dest);
+				
+				//
+				c = strchr(left, ']');	*c = '\0';
+				c = strchr(rght, ')');	*c = '\0';
+//				if ( bimage ) // RTFM
+				roff(url_mark, left, rght);
+				
+				// finish
+				free(left);
+				free(rght);
+				p = pfin + 1;
+				}
+			else {
+				*d ++ = *p ++;
+				continue;
+				}
+			}
+//		else if ( *p == '<' || *p == '(' ) { // generic link
+//			pstart = p + 1;
+//			pnext = strchr(pstart, (*p=='<')?'>':')');
 //			if ( pnext ) {
-//				char nc = *(pnext+1);
-//				if ( nc == '(' ) // link
-//				if ( nc == '[' ) // reference
 //				}
 //			else {
 //				*d ++ = *p ++;
@@ -637,7 +738,7 @@ void md2roff(const char *docname, const char *source)
  */
 static char *usage ="\
 usage: md2roff [options] [file1 .. [fileN]]\n\
-\t-n, --man\n\t\tuse man package\n\
+\t-n, --man\n\t\tuse man package (default)\n\
 \t-d, --mdoc\n\t\tuse mdoc package (BSD man-pages)\n\
 \t-m, --mm\n\t\tuse mm package\n\
 \t-o, --mom\n\t\tuse mom package\n\
