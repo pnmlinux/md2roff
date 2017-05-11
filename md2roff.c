@@ -113,21 +113,28 @@ const char *println(const char *src)
 }
 
 /*
+*	types of elements
 */
-enum { none, par_end, ln_brk, cblock_end, cblock_open,
-		li_open, li_end, ol_open, ul_open, lst_close,
+enum { none,
+		par_end, ln_brk,
+		cblock_end, cblock_open,
+		li_open, li_end,
+		ol_open, ul_open, lst_close,
 		man_ref, ol, ul,
 		bq_open, bq_close,
+		box_open, box_close,
 		new_sh, new_ss, new_s4 };
 
 /*
+*	list (enumeration/itemize) stack
 */
 #define	MAX_LIST_SIZE	32
-int		stk_list[MAX_LIST_SIZE];
-int		stk_count[MAX_LIST_SIZE];
-int		stk_list_p = 0;
+int		stk_list[MAX_LIST_SIZE];	// type of list
+int		stk_count[MAX_LIST_SIZE];	// counter of item
+int		stk_list_p = 0;				// top pointer, always points to first free
 
 /*
+*	write the roff code of 'type'
 */
 void roff(int type, ...)
 {
@@ -135,32 +142,110 @@ void roff(int type, ...)
 
 	va_start(ap, type);
 	switch ( type ) {
+
+	// new paragraph
 	case par_end:
 		if ( opt_use_mdoc )
 			puts(".Pp");
 		else
 			puts(".PP");
 		break;
+
+	// line break
 	case ln_brk:
 		if ( opt_use_mom )
-			puts(".BR");
+			puts(".BR");	// or .br or .EL or .LINEBREAK ????
 		else
 			puts(".br");
 		break;
+
+	// cartouche top
+	case box_open:
+		if ( opt_use_mom )
+			puts(".DRH");
+		break;
+
+	// cartouche bottom
+	case box_close:
+		if ( opt_use_mom )
+			puts(".DRH");
+		break;
+
+	// code block - begin
 	case cblock_open:
-		if ( opt_use_mdoc )
+		if ( opt_use_mom )
+			printf(".CODE\n");
+		else if ( opt_use_mdoc )
 			printf(".Bd -literal -offset indent\n");
 		else
 			printf(".RS 4\n.EX\n");
 		break;
+
+	// code block - end
 	case cblock_end:
-		if ( opt_use_mdoc )
+		if ( opt_use_mom )
+			printf(".CODE OFF\n");
+		else if ( opt_use_mdoc )
 			printf(".Ed\n");
 		else
 			printf(".EE\n.RE\n");
 		break;
+
+	// ordered list (1..2..3..)
+	case ol_open:
+		stk_list[stk_list_p] = ol;
+		stk_count[stk_list_p] = 1;
+		stk_list_p ++;
+		if ( opt_use_mom ) {
+			switch ( stk_list_p ) {
+			case 1: puts(".LIST DIGIT"); break;
+			case 2: puts(".LIST ALPHA"); break;
+			case 3: puts(".LIST DIGIT"); break;
+			case 4:	puts(".LIST alpha"); break;
+			default:
+				puts(".LIST DIGIT");
+				};
+			}
+		else if ( opt_use_mdoc )
+			puts(".Bl -enum -offset indent");
+		else
+			puts(".AL");
+		break;
+
+	// unordered list (bullets)
+	case ul_open:
+		stk_list[stk_list_p] = ul;
+		stk_count[stk_list_p] = 1;
+		stk_list_p ++;
+		if ( opt_use_mom ) {
+			if ( stk_list_p % 2 ) 
+				puts(".LIST BULLET");
+			else
+				puts(".LIST DASH");
+			}
+		else if ( opt_use_mdoc ) {
+			if ( stk_list_p % 2 ) 
+				puts(".Bl -bullet -offset indent");
+			else
+				puts(".Bl -dash -offset indent");
+			}
+		else
+			puts(".BL");
+		break;
+
+	// close list
+	case lst_close:
+		if ( opt_use_mom )
+			puts(".LIST OFF");
+		else if ( opt_use_mdoc )
+			puts(".El");
+		break;
+
+	// list item - begin
 	case li_open:
-		if ( opt_use_mdoc )
+		if ( opt_use_mom )
+			puts(".ITEM");
+		else if ( opt_use_mdoc )
 			puts(".It");
 		else if ( opt_use_man ) {
 			if ( stk_list_p ) {
@@ -175,62 +260,61 @@ void roff(int type, ...)
 		else
 			puts(".LI");
 		break;
+		
+	// list item - end
 	case li_end:
-		if ( !opt_use_mdoc )
-			puts(".LE");
+		if ( opt_use_mom ) break;
+		if ( opt_use_mdoc ) break;
+		puts(".LE");
 		break;
-	case ol_open:
-		stk_list[stk_list_p] = ol;
-		stk_count[stk_list_p] = 1;
-		stk_list_p ++;
-		if ( opt_use_mdoc )
-			puts(".Bl -enum -offset indent");
-		else
-			puts(".AL");
-		break;
-	case ul_open:
-		stk_list[stk_list_p] = ul;
-		stk_count[stk_list_p] = 1;
-		stk_list_p ++;
-		if ( opt_use_mdoc )
-			puts(".Bl -bullet -offset indent");
-		else
-			puts(".BL");
-		break;
-	case lst_close:
-		if ( opt_use_mdoc )
-			puts(".El");
-		break;
+
+	// new big header/section
 	case new_sh:
-		if ( opt_use_mdoc )
+		if ( opt_use_mom )
+			printf(".PP\n");	// todo
+		else if ( opt_use_mdoc )
 			printf(".Sh ");
 		else
 			printf(".SH ");
 		break;
+
+	// new medium header/secrtion
 	case new_ss:
-		if ( opt_use_mdoc )
+		if ( opt_use_mom )
+			printf(".PP\n");	// todo
+		else if ( opt_use_mdoc )
 			printf(".Ss ");
 		else
 			printf(".SS ");
 		break;
+
+	// new small header/secrtion
 	case new_s4:
-		if ( opt_use_mdoc )
+		if ( opt_use_mom )
+			printf(".PP\n");	// todo
+		else if ( opt_use_mdoc )
 			printf(".Ss ");
 		else
 			printf(".SS ");
 		break;
+
+	// reference to man page
 	case man_ref:
-		if ( opt_use_mdoc )
+		if ( opt_use_mom )	// ???
+			break;
+		else if ( opt_use_mdoc )
 			printf(".Xr ");
 		else
 			printf(".BR ");
 		break;
 		}
+	
 	va_end(ap);
 }
 
 /*
- * converts a document to groff_man(7)
+ *	this converts the file 'docname',
+ *	that is loaded in 'source', to *-roff.
  */
 void md2roff(const char *docname, const char *source)
 {
@@ -241,8 +325,9 @@ void md2roff(const char *docname, const char *source)
 	bool	inside_list = false;
 	bool	title_level = 0;
 
-	puts(".\\\" troff document, requires man package");
-	puts(".\\\" md2roff file.md | groff -Tutf8 -man | $PAGER");
+	stk_list_p = 0; // reset stack
+	
+	puts(".\\\" *roff document");
 	if ( opt_use_mm )
 		puts(".do mso m.tmac"); // AL BL DL LI LE
 	if ( opt_use_mdoc )
@@ -280,13 +365,20 @@ void md2roff(const char *docname, const char *source)
 				}
 			else {
 				bool xchg_dot = false;
-				if ( *p == '.' ) { // damn bug... inside .EX/.EE
-					puts(".cc !");
+				if ( *p == '.' ) {
+					if ( opt_use_mom )
+						puts(".ESC_CHAR !");
+					else
+						puts(".cc !");
 					xchg_dot = true;
 					}
 				p = println(p);
-				if ( xchg_dot )
-					puts("!cc .");
+				if ( xchg_dot ) {
+					if ( opt_use_mom )
+						puts(".ESC_CHAR .");
+					else
+						puts("!cc .");
+					}
 				continue;
 				}
 			}
@@ -330,7 +422,9 @@ void md2roff(const char *docname, const char *source)
 						}
 					else {
 						roff(ln_brk);
+						roff(box_open);
 						p = println(p);
+						roff(box_close);
 						roff(ln_brk);
 						continue;
 						}
@@ -405,13 +499,19 @@ void md2roff(const char *docname, const char *source)
 			( *p == '_' && *(p+1) == '_' ) ) { // strong
 			if ( bold ) {
 				bold = false;
-				d = stradd(d, "\\fP");
+				if ( opt_use_mom )
+					d = stradd(d, "\\*[PREV]");
+				else
+					d = stradd(d, "\\fP");
 				}
 			else {
 				char pc = (p > source) ? *(p-1) : ' ';
 				if ( strchr("({[,.;`'\" \t\n", pc) != NULL ) {
 					bold = true;
-					d = stradd(d, "\\fB");
+					if ( opt_use_mom )
+						d = stradd(d, "\\*[BD]");
+					else
+						d = stradd(d, "\\fB");
 					}
 				else {
 					*d ++ = *p;
@@ -424,13 +524,19 @@ void md2roff(const char *docname, const char *source)
 		else if ( *p == '*' ||  *p == '_' ) { // emphasis
 			if ( italics ) {
 				italics = false;
-				d = stradd(d, "\\fP");
+				if ( opt_use_mom )
+					d = stradd(d, "\\*[PREV]");
+				else
+					d = stradd(d, "\\fP");
 				}
 			else {
 				char pc = (p > source) ? *(p-1) : ' ';
 				if ( strchr("({[,.;`'\" \t\n", pc) != NULL ) {
 					italics = true;
-					d = stradd(d, "\\fI");
+					if ( opt_use_mom )
+						d = stradd(d, "\\*[IT]");
+					else
+						d = stradd(d, "\\fI");
 					}
 				else
 					*d ++ = *p;
@@ -440,7 +546,11 @@ void md2roff(const char *docname, const char *source)
 			}
 		else if ( *p == '`' ) { // inline code
 			p ++;
-			d = stradd(d, "\\f[CR]");
+			if ( opt_use_mom )
+				d = stradd(d, "\\*[CODE]");
+			else
+				d = stradd(d, "\\f[CR]");
+			
 			while ( *p != '`' ) {
 				if ( *p == '\0' ) {
 					fprintf(stderr, "%s", "inline code (`) didnt closed.");
@@ -448,7 +558,11 @@ void md2roff(const char *docname, const char *source)
 					}
 				*d ++ = *p ++;
 				}
-			d = stradd(d, "\\fP");
+
+			if ( opt_use_mom )
+				d = stradd(d, "\\*[CODE OFF]");
+			else
+				d = stradd(d, "\\fP");
 			}
 		else if ( *p == '[' && strncmp(p, "[man:", 5) == 0 ) { // reference to man page
 			pnext = strchr(p+1, ']');
@@ -458,7 +572,7 @@ void md2roff(const char *docname, const char *source)
 				printf("%s\n", dest);
 				d = dest;
 				
-				// print reference
+				// print man reference
 				roff(man_ref);
 				p += 5;
 				while ( *p != ']' ) {
@@ -497,12 +611,14 @@ void md2roff(const char *docname, const char *source)
 }
 
 /*
+ * --- main() ---
  */
 static char *usage ="\
 usage: md2roff [options] [file1 .. [fileN]]\n\
 \t-n, --man\n\t\tuse man package\n\
 \t-d, --mdoc\n\t\tuse mdoc package (BSD man-pages)\n\
 \t-m, --mm\n\t\tuse mm package\n\
+\t-o, --mom\n\t\tuse mom package\n\
 \t-h, --help\n\t\tprint this screen\n\
 \t-v, --version\n\t\tprint version information\n\
 ";

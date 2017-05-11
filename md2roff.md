@@ -1,7 +1,7 @@
 # md2roff 1 2017-05-09 GNU
 
 ## NAME
-md2roff \- converts markdown documents to groff_man(7)
+md2roff \- converts markdown documents to roff (man, mdoc, mm, mom).
 
 ## SYNOPSIS
 md2roff [*OPTION*]... [*FILE*]...
@@ -27,6 +27,9 @@ use mm package, see [man:groff_mm(7)]
 
 #### -d, --mdoc
 use mdoc package (BSD man pages), see [man:groff_mdoc(7)]
+
+#### -o, --mom
+use mom package, see [man:groff_mom(7)]
 
 ## NOTES
 1. If the documents starts with '# ' then creates the TH command with this;
@@ -65,4 +68,6 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 ## SEE ALSO
-[man:groff_man(7)], [man:man-pages(7)]
+[man:groff_man(7)], [man:man-pages(7)], 
+[man:groff_man(7)], [man:groff_mdoc(7)], 
+[man:groff_mm(7)], [man:groff_mom(7)].
