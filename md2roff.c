@@ -729,6 +729,7 @@ void md2roff(const char *docname, const char *source)
 
 		p ++;
 		}
+	d = flushln(d, dest);
 
 	free(dest);
 }
