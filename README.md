@@ -27,12 +27,12 @@ Note: Edit `Makefile` to set the destination directory.
 
 ## Usage
 
-Please see the md2roff.md file
-
 Example:
 ```
 % md2roff myfile.md > myfile.man
 ```
+
+For more, please read the [md2roff.md](https://github.com/nereusx/md2roff/blob/master/md2roff.md) file.
 
 That's all.
 
