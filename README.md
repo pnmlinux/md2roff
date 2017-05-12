@@ -10,6 +10,11 @@ Requires:
 
 Alpha but it does the job.
 
+80% : man format
+60% : mdoc format
+60% : mom format
+--- : mm format
+
 ## Install
 
 ```shell
@@ -19,3 +24,17 @@ Alpha but it does the job.
 ```
 
 Note: Edit `Makefile` to set the destination directory.
+
+## Usage
+
+Please see the md2roff.md file
+
+Example:
+```
+% md2roff myfile.md > myfile.man
+```
+
+That's all.
+
+
+

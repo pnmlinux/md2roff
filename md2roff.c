@@ -30,12 +30,59 @@ bool opt_use_mom = false;
 
 /*
  */
-char *strdup (const char *s)
+char *strdup(const char *s)
 {
 	char *d = (char *) malloc(strlen(s) + 1); 
     if ( d )
 		strcpy(d, s);
     return d;
+}
+
+/*
+*	squeeze (& strdup)
+*/
+char *sqzdup(const char *source)
+{
+	char *rp, *p, *d;
+	int lc = 0;
+
+	rp = malloc(strlen(source) + 1);
+	p = (char *) source;
+	d = rp;
+
+	while ( isspace(*p) ) p ++;
+
+	while ( *p ) {
+		if ( isspace(*p) ) {
+			if ( !lc ) {
+				lc = 1;
+				if ( p > source ) {
+					if ( isalnum(*(p - 1)) )
+						*d ++ = ' ';
+					else {
+						char *nc = p;
+						while ( isspace(*nc) )
+							nc ++;
+						if ( isalnum(*nc) )
+							*d ++ = ' ';
+						}
+					}
+				}
+			}
+		else {
+			lc = 0;
+			*d ++ = *p;
+			}
+		p ++;
+		}
+
+	*d = '\0';
+	if ( d > rp ) {
+		if ( isspace(*(d - 1)) ) 
+			*(d - 1) = '\0';
+		}
+	
+	return rp;
 }
 
 /*
@@ -362,8 +409,11 @@ char *flushln(char *d, char *bf)
 		d = bf;
 		while ( isspace(*d) )
 			d ++;
-		if ( *d )
-			puts(d);
+		if ( *d ) {
+			char *z = sqzdup(d);
+			puts(z);
+			free(z);
+			}
 		}
 	return bf;
 }
@@ -659,6 +709,10 @@ void md2roff(const char *docname, const char *source)
 			else
 				d = stradd(d, "\\fP'");
 			}
+
+
+		//	man-page reference
+		//	syntax [man:page section]
 		else if ( *p == '[' && strncmp(p, "[man:", 5) == 0 ) { // reference to man page
 			pnext = strchr(p+1, ']');
 			if ( pnext ) {
@@ -679,6 +733,13 @@ void md2roff(const char *docname, const char *source)
 				continue;
 				}
 			}
+
+		//
+		//	Markdown link:
+		//
+		//	generic link syntax  [text](link)
+		//	image link syntax	![text](link)
+		//
 		else if ( *p == '[' ) { // markdown link
 			const char *pfin;
 			pstart = p + 1;
@@ -700,6 +761,7 @@ void md2roff(const char *docname, const char *source)
 				c = strchr(left, ']');	*c = '\0';
 				c = strchr(rght, ')');	*c = '\0';
 //				if ( bimage ) // RTFM
+//				if ( strncmp(rght, "man:", 4) == 0 )
 				roff(url_mark, left, rght);
 				
 				// finish
