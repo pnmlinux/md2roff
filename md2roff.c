@@ -387,12 +387,13 @@ void roff(int type, ...)
 
 	// reference to man page
 	case man_ref:
-		if ( opt_use_mom )	// ???
-			break;
-		else if ( opt_use_mdoc )
-			printf(".Xr ");
+		link = va_arg(ap, char *);
+		if ( opt_use_mdoc )
+			printf(".Xr %s\n", link);
+		else if ( opt_use_man )
+			printf(".BR %s\n", link);
 		else
-			printf(".BR ");
+			printf("%s\n", link);
 		break;
 		}
 	
@@ -434,7 +435,7 @@ void md2roff(const char *docname, const char *source)
 
 	stk_list_p = 0; // reset stack
 	
-	puts(".\\\" *roff document");
+	puts(".\\\" x-roff document");
 	if ( opt_use_mm )
 		puts(".do mso m.tmac"); // mm package, AL BL DL LI LE
 	if ( opt_use_mdoc )
@@ -597,7 +598,7 @@ void md2roff(const char *docname, const char *source)
 				roff(cblock_open);
 				continue;
 				}
-			}
+			} // inside if ( beginning of line )
 
 		//////////////////////////////////
 		// in line
@@ -710,30 +711,6 @@ void md2roff(const char *docname, const char *source)
 				d = stradd(d, "\\fP'");
 			}
 
-
-		//	man-page reference
-		//	syntax [man:page section]
-		else if ( *p == '[' && strncmp(p, "[man:", 5) == 0 ) { // reference to man page
-			pnext = strchr(p+1, ']');
-			if ( pnext ) {
-				d = flushln(d, dest);
-				
-				// print man reference
-				roff(man_ref);
-				p += 5;
-				while ( *p != ']' ) {
-					if ( *p == '(' )
-						putchar(' ');
-					putchar(*p);
-					p ++;
-					}
-				}
-			else {
-				*d ++ = *p ++;
-				continue;
-				}
-			}
-
 		//
 		//	Markdown link:
 		//
@@ -744,46 +721,43 @@ void md2roff(const char *docname, const char *source)
 			const char *pfin;
 			pstart = p + 1;
 			pnext = strchr(pstart, ']');
-			if ( pnext && ( *(pnext+1) == '(' )
-				 && ((pfin = strchr(pnext+2, ')')) != NULL) ) {
+			if ( pnext
+					 && ( *(pnext+1) == '(' )
+						 && ((pfin = strchr(pnext+2, ')')) != NULL)
+			   ) {
 				char *left = strdup(pstart);
 				char *rght = strdup(pnext+2);
 				bool bimage = false;
-				char *c;
+				char *cp;
 
+				/*
 				if ( *(d-1) == '!' ) {
 					*(d-1) = '\0';
 					bimage = true;
 					}
+				 */
 				d = flushln(d, dest);
 				
-				//
-				c = strchr(left, ']');	*c = '\0';
-				c = strchr(rght, ')');	*c = '\0';
+				cp = strchr(left, ']');	*cp = '\0';
+				cp = strchr(rght, ')');	*cp = '\0';
+				
 //				if ( bimage ) // RTFM
-//				if ( strncmp(rght, "man:", 4) == 0 )
-				roff(url_mark, left, rght);
+				if ( strcmp(rght, "man") == 0 )
+					roff(man_ref, left);
+				else
+					roff(url_mark, left, rght);
 				
 				// finish
 				free(left);
 				free(rght);
 				p = pfin + 1;
+				continue;
 				}
 			else {
 				*d ++ = *p ++;
 				continue;
 				}
 			}
-//		else if ( *p == '<' || *p == '(' ) { // generic link
-//			pstart = p + 1;
-//			pnext = strchr(pstart, (*p=='<')?'>':')');
-//			if ( pnext ) {
-//				}
-//			else {
-//				*d ++ = *p ++;
-//				continue;
-//				}
-//			}
 		else {
 			*d = *p;
 			d ++;

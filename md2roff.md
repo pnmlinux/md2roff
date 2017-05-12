@@ -20,16 +20,16 @@ displays a short-help text and exits
 displays the program version, copyright and license information and exists.
 
 #### -n, --man
-use man package (linux man pages, default), see [man:groff_man(7)]
+use man package (linux man pages, default), see [groff_man(7)](man)
 
 #### -m, --mm
-use mm package, see [man:groff_mm(7)]
+use mm package, see [groff_mm(7)](man)
 
 #### -d, --mdoc
-use mdoc package (BSD man pages), see [man:groff_mdoc(7)]
+use mdoc package (BSD man pages), see [groff_mdoc(7)](man)
 
 #### -o, --mom
-use mom package, see [man:groff_mom(7)]
+use mom package, see [groff_mom(7)](man)
 
 ## NOTES
 1. If the documents starts with '# ' then creates the TH command with this;
@@ -68,6 +68,6 @@ There is NO WARRANTY, to the extent permitted by law.
 Written by Nicholas Christopoulos (nereus@freemail.gr).
 
 ## SEE ALSO
-[man:groff_man(7)], [man:man-pages(7)], 
-[man:groff_man(7)], [man:groff_mdoc(7)], 
-[man:groff_mm(7)], [man:groff_mom(7)].
+[groff_man(7),](man)[man-pages(7),](man)
+[groff_man(7),](man)[groff_mdoc(7),](man)
+[groff_mm(7),](man)[groff_mom(7)](man).
