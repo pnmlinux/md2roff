@@ -22,6 +22,9 @@
 #include <string.h>
 #include <errno.h>
 
+// buffers size in KB
+#define MD_BUF_SZ	64
+
 // options
 bool opt_use_mm = false;
 bool opt_use_mdoc = false;
@@ -222,8 +225,12 @@ void roff(int type, ...)
 	case url_mark:
 		title = va_arg(ap, char *);
 		link = va_arg(ap, char *);
-		if ( opt_use_man )
-			printf(".UR %s\n%s\n.UE\n", link, title);
+		if ( opt_use_man ) {
+			if ( strchr(link, '@') )
+				printf(".MT %s\n%s\n.ME\n", link, title);
+			else
+				printf(".UR %s\n%s\n.UE\n", link, title);
+			}
 		else if ( opt_use_mdoc ) {
 			if ( strchr(link, '@') )
 				printf(".An %s Aq Mt %s\n", title, link);
@@ -390,8 +397,17 @@ void roff(int type, ...)
 		link = va_arg(ap, char *);
 		if ( opt_use_mdoc )
 			printf(".Xr %s\n", link);
-		else if ( opt_use_man )
-			printf(".BR %s\n", link);
+		else if ( opt_use_man ) {
+			char *tmp = strdup(link);
+			char *p = strchr(tmp, ' ');
+			if ( p ) {
+				*p = '\0';
+				printf("\\fB%s\\fP(%s)\n", tmp, p+1);
+				}
+			else
+				printf("\\fB%s\\fP\n", link);
+			free(tmp);
+			}
 		else
 			printf("%s\n", link);
 		break;
@@ -418,7 +434,6 @@ char *flushln(char *d, char *bf)
 		}
 	return bf;
 }
-
 
 /*
  *	this converts the file 'docname',
@@ -466,7 +481,7 @@ void md2roff(const char *docname, const char *source)
 			}
 		}
 
-	dest = (char *) malloc(64*1024);
+	dest = (char *) malloc(MD_BUF_SZ*1024);
 	d = dest;
 	while ( *p ) {
 
@@ -503,6 +518,26 @@ void md2roff(const char *docname, const char *source)
 				}
 			}
 
+		//////////////////////////////////
+		// ignore escape characters
+		if ( *p == '\\' ) {
+			p ++;
+			switch (*p) {
+			case 'n': *d ++ = '\n'; break;
+			case 'r': *d ++ = '\r'; break;
+			case 't': *d ++ = '\t'; break;
+			case 'f': *d ++ = '\f'; break;
+			case 'b': *d ++ = '\b'; break;
+			case 'a': *d ++ = '\a'; break;
+			case 'e': *d ++ = '\033'; break;
+			default:
+				*d ++ = *p;
+				}
+			p ++;
+			bline = false;
+			continue;
+			}
+		
 		//////////////////////////////////
 		// beginning of line
 		//////////////////////////////////
@@ -637,6 +672,8 @@ void md2roff(const char *docname, const char *source)
 				p ++;
 				continue;
 				}
+			else
+				*d ++ = ' ';
 
 			bline = true;
 			}
@@ -716,9 +753,15 @@ void md2roff(const char *docname, const char *source)
 		//
 		//	generic link syntax  [text](link)
 		//	image link syntax	![text](link)
+		//	man page syntax      [page section](man)
 		//
-		else if ( *p == '[' ) { // markdown link
+		else if ( *p == '[' || (*p == '!' && *(p+1) == '[') ) { // markdown link
 			const char *pfin;
+			bool bimg = false;
+			if ( *p == '!' ) {
+				p ++;
+				bimg = true;
+				}
 			pstart = p + 1;
 			pnext = strchr(pstart, ']');
 			if ( pnext
@@ -727,21 +770,14 @@ void md2roff(const char *docname, const char *source)
 			   ) {
 				char *left = strdup(pstart);
 				char *rght = strdup(pnext+2);
-				bool bimage = false;
 				char *cp;
 
-				/*
-				if ( *(d-1) == '!' ) {
-					*(d-1) = '\0';
-					bimage = true;
-					}
-				 */
 				d = flushln(d, dest);
 				
 				cp = strchr(left, ']');	*cp = '\0';
 				cp = strchr(rght, ')');	*cp = '\0';
 				
-//				if ( bimage ) // RTFM
+//				if ( bimg ) // RTFM
 				if ( strcmp(rght, "man") == 0 )
 					roff(man_ref, left);
 				else
@@ -793,6 +829,9 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 
 int main(int argc, char *argv[])
 {
+	int files[64];
+	int fc = 0;
+	
 	for ( int i = 1; i < argc; i ++ ) {
 		if ( argv[i][0] == '-' ) {
 			if ( argv[i][1] == '\0' ) { // read from stdin
@@ -832,10 +871,15 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "unknown option: [%s]\n", argv[i]);
 			}
 		else {
-			char *buf = loadfile(argv[i]);
-			md2roff(argv[i], buf);
-			free(buf);
+			files[fc] = i;
+			fc ++;
 			}
+		}
+		
+	for ( int i = 0; i < fc; i ++ ) {
+		char *buf = loadfile(argv[files[i]]);
+		md2roff(argv[files[i]], buf);
+		free(buf);
 		}
 
 	return EXIT_SUCCESS;
