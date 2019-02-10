@@ -2,7 +2,7 @@ PREFIX=/usr/local
 LIBS = -lc 
 CFLAGS = -std=c99
 
-all: md2roff md2roff.1
+all: md2roff md2roff.1.gz
 
 md2roff: md2roff.c
 	$(CC) $(CFLAGS) md2roff.c -o md2roff $(LDFLAGS) $(LIBS)
