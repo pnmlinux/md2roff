@@ -26,9 +26,6 @@
 #include <string.h>
 #include <errno.h>
 
-// buffers size in KB
-#define MD_BUFFER_SIZE	64
-
 // options
 typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom } macropackage_t;
 macropackage_t	mpack = mp_man;
@@ -446,22 +443,12 @@ void md2roff(const char *docname, const char *source)
 		puts(".do mso m.tmac"); // mm package, AL BL DL LI LE
 		break;
 	case mp_mdoc:
-		puts(".do mso mdoc.tmac"); // BSD man
-		break;
 	case mp_man:
-		puts(".do mso man.tmac"); // Linux man
-		break;
-	case mp_mom:
-		puts(".do mso mom.tmac"); // mom
-		printf(".TITLE \"%s\"\n", docname);
-		printf(".AUTHOR \"md2roff\"\n");
-		printf(".PAPER A4\n");
-		printf(".PRINTSTYLE TYPESET\n");
-		printf(".START\n");
-		break;
-		}
-
-	if ( mpack == mp_man || mpack == mp_mdoc ) {
+		if ( mpack == mp_mdoc )
+			puts(".do mso mdoc.tmac"); // BSD man
+		else
+			puts(".do mso man.tmac"); // Linux man
+		
 		if ( *p == '#' && isspace(*(p+1)) ) {
 			printf(".TH ");
 			p = println(p+2);
@@ -473,9 +460,18 @@ void md2roff(const char *docname, const char *source)
 				   docname,
 				   t->tm_year+1900, t->tm_mon+1, t->tm_mday);
 			}
+		break;
+	case mp_mom:
+		puts(".do mso mom.tmac"); // mom
+		printf(".TITLE \"%s\"\n", docname);
+		printf(".AUTHOR \"md2roff\"\n");
+		printf(".PAPER A4\n");
+		printf(".PRINTSTYLE TYPESET\n");
+		printf(".START\n");
+		break;
 		}
 
-	dest = (char *) malloc(MD_BUFFER_SIZE*1024);
+	dest = (char *) malloc(64*1024);
 	d = dest;
 	while ( *p ) {
 
