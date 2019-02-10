@@ -810,7 +810,7 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 ";
 
 static char *version ="\
-md2roff, version 1.0\n\
+md2roff, version 1.1\n\
 Copyright (C) 2017 Free Software Foundation, Inc.\n\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n\
 This is free software: you are free to change and redistribute it.\n\
