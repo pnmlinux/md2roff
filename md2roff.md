@@ -40,7 +40,7 @@ title (name) and section are required.
 ```
 2. If you write man page, use `####` for each option to automatically convert
 the section to '.TP' as in GNU's manuals.
-3. Use special link type (man) to link man pages.
+3. Use special link type (man) to link man pages. Example: ... written in [tcsh 1](man) ...
 
 ## BUGS
 A lot. Fix and send.
@@ -57,6 +57,7 @@ $ md2roff mytext.md | groff -Tps -man | okular -
 ```
 
 This document is example, its written in markdown and produce a nice man page.
+You can see the man page as exported to pdf (by groff) in this directory.
 
 ## COPYRIGHT
 Copyright (C) 2017 Free Software Foundation, Inc.
