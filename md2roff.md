@@ -40,7 +40,10 @@ title (name) and section are required.
 ```
 2. If you write man page, use `####` for each option to automatically convert
 the section to '.TP' as in GNU's manuals.
-3. Use special link type (man) to link man pages. Example: ... written in [tcsh 1](man) ...
+3. Use special link type (man) to link man pages.
+```
+... written in [tcsh 1](man) ...
+```
 
 ## BUGS
 A lot. Fix and send.
