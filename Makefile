@@ -25,5 +25,5 @@ uninstall:
 	-@rm $(MANDIR)/man1/md2roff.1.gz
 
 clean:
-	-@rm *.o md2roff{,.1,.1.gz}
+	-@rm *.o md2roff md2roff.1*
 
