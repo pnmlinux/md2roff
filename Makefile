@@ -1,7 +1,9 @@
-PREFIX=/usr/local
-#MANDIR=$PREFIX/man
-MANDIR=$(shell test -d $(PREFIX)/share/man && echo $(PREFIX)/share/man || echo $(PREFIX)/man)
-LIBS = -lc 
+#
+#	GNU make
+# 
+PREFIX = /usr/local
+MANDIR = $(shell test -d $(PREFIX)/share/man && echo $(PREFIX)/share/man || echo $(PREFIX)/man)
+LIBS   = -lc 
 CFLAGS = -std=c99
 
 all: md2roff md2roff.1.gz
@@ -23,5 +25,5 @@ uninstall:
 	-@rm $(MANDIR)/man1/md2roff.1.gz
 
 clean:
-	-@rm *.o md2roff md2roff.1 md2roff.1.gz
+	-@rm *.o md2roff{,.1,.1.gz}
 
