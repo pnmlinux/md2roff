@@ -20,7 +20,7 @@ install: md2roff md2roff.1.gz
 
 uninstall:
 	-@rm $(PREFIX)/bin/md2roff
-	-@rm $(MANDIR)/man/md2roff.1.gz
+	-@rm $(MANDIR)/man1/md2roff.1.gz
 
 clean:
 	-@rm *.o md2roff md2roff.1 md2roff.1.gz
