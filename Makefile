@@ -1,4 +1,6 @@
 PREFIX=/usr/local
+#MANDIR=$PREFIX/man
+MANDIR=$(shell test -d $(PREFIX)/share/man && echo $(PREFIX)/share/man || echo $(PREFIX)/man)
 LIBS = -lc 
 CFLAGS = -std=c99
 
@@ -14,7 +16,12 @@ md2roff.1.gz: md2roff.md md2roff
 
 install: md2roff md2roff.1.gz
 	install -m 0755 -s md2roff $(PREFIX)/bin
-	install -m 0644 md2roff.1.gz $(PREFIX)/man/man1
+	install -m 0644 md2roff.1.gz $(MANDIR)/man1
+
+uninstall:
+	-@rm $(PREFIX)/bin/md2roff
+	-@rm $(MANDIR)/man/md2roff.1.gz
 
 clean:
 	-@rm *.o md2roff md2roff.1 md2roff.1.gz
+
