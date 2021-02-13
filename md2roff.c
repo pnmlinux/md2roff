@@ -11,6 +11,7 @@
  *	history:
  *		20017-05-08, created
  *		20019-02-10, cleanup
+ *		20021-02-13, BSD-SYNTAX and a few improvements for man-pages
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License.
@@ -870,8 +871,8 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 ";
 
 static char *version ="\
-md2roff, version 1.1\n\
-Copyright (C) 2017 Free Software Foundation, Inc.\n\
+md2roff, version 1.2\n\
+Copyright (C) 2017-2021 Nicholas Christopoulos <mailto:nereus@freemail.gr>.\n\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n\
 This is free software: you are free to change and redistribute it.\n\
 There is NO WARRANTY, to the extent permitted by law.\n\
