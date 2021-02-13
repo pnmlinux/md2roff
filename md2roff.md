@@ -45,11 +45,13 @@ Example, link to [tcsh 1](man)
 ```
 ... link to [tcsh 1](man) ...
 ```
-4. For man and mdoc modes, there is a special keyword that enables the BSD
-   syntax commands (.SY/.OP/.YS). Do not use if you dont know them.
+4. For man and mdoc modes, there is a special keyword `SYNTAX:` in SYNOPSIS
+   section that enables the syntax commands (.SY/.OP/.YS). Each line starts with
+   `-` translated to .OP otherwise to .RI, except the first which is the command
+   name.
 ```
 ## SYNOPSIS
-BSD-SYNTAX:
+SYNTAX:
 	appname
 	-x arg
 	-y [arg]

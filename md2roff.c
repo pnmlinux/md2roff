@@ -11,7 +11,7 @@
  *	history:
  *		20017-05-08, created
  *		20019-02-10, cleanup
- *		20021-02-13, BSD-SYNTAX and a few improvements for man-pages
+ *		20021-02-13, SYNTAX and a few improvements for man-pages
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License.
@@ -427,7 +427,7 @@ char *flushln(char *d, char *bf)
  *	this converts the file 'docname',
  *	that is loaded in 'source', to *-roff.
  */
-#define KEY_BSDSYN "BSD-SYNTAX:"
+#define KEY_BSDSYN "SYNTAX:"
 #define ISMAN()		(mpack == mp_mdoc || mpack == mp_man)
 
 #define dcopy(c) { for ( const char *s = (c); *s; *d ++ = *s ++ ); }
@@ -439,9 +439,10 @@ void md2roff(const char *docname, const char *source)
 	bool	bold = false, italics = false;
 	bool	inside_list = false;
 	bool	title_level = 0;
+	char	secname[256];
 
 	stk_list_p = 0; // reset stack
-	
+	secname[0] = '\0';
 	puts(".\\\" x-roff document");
 	switch ( mpack ) {
 	case mp_mm:
@@ -565,7 +566,13 @@ void md2roff(const char *docname, const char *source)
 						while ( *p == ' ' || *p == '\t' ) p ++;
 						switch ( level ) {
 						case 1: roff(new_sh); break; // TH?
-						case 2: roff(new_sh); break;
+						case 2: roff(new_sh); {
+							const char *s;
+							char *n;
+							for ( s = p, n = secname; *s != '\n'; *n ++ = *s ++ );
+							*n = '\0';
+							}
+							break;
 						case 3: roff(new_ss); break;
 						case 4:
 						default:
@@ -592,7 +599,7 @@ void md2roff(const char *docname, const char *source)
 						}
 					}
 				}
-			else if ( ISMAN() && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // BSD SYNTAX BLOCK
+			else if ( ISMAN() && strcmp(secname, "SYNOPSIS") == 0 && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // SYNTAX BLOCK (.SY/.YS)
 				bool first;
 				
 				d = flushln(d, dest);
