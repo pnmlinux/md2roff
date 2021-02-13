@@ -18,7 +18,7 @@ Alpha but it does the job.
 ## Install
 
 ```shell
-# git clone https://github.com/nereusx/md2roff.git
+# git clone https://github.com/nereusx/md2roff
 # cd md2roff
 # make && make install
 ```
