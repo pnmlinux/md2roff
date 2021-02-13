@@ -426,6 +426,8 @@ char *flushln(char *d, char *bf)
  *	this converts the file 'docname',
  *	that is loaded in 'source', to *-roff.
  */
+#define KEY_BSDSYN "SYNTAX:"
+#define dcopy(c) { for ( const char *s = (c); *s; *d ++ = *s ++ ); }
 void md2roff(const char *docname, const char *source)
 {
 	const char *p = source, *pnext, *pstart;
@@ -444,6 +446,7 @@ void md2roff(const char *docname, const char *source)
 		break;
 	case mp_mdoc:
 	case mp_man:
+		while ( isspace(*p) ) p ++;
 		if ( mpack == mp_mdoc )
 			puts(".do mso mdoc.tmac"); // BSD man
 		else
@@ -452,6 +455,7 @@ void md2roff(const char *docname, const char *source)
 		if ( *p == '#' && isspace(*(p+1)) ) {
 			printf(".TH ");
 			p = println(p+2);
+			while ( isspace(*p) ) p ++;
 			}
 		else {
 			time_t tt = time(0);   // get time now
@@ -550,7 +554,7 @@ void md2roff(const char *docname, const char *source)
 			else if ( *p == '#' ) { // header
 				d = flushln(d, dest);
 				
-				pnext = strchr(p, '\n');
+				pnext = strchr(p+1, '\n');
 				if ( pnext ) {
 					if ( *(pnext-1) != '#' ) {
 						int	level = 0;
@@ -572,6 +576,8 @@ void md2roff(const char *docname, const char *source)
 							continue;
 							}
 						p = println(p);
+						bline = true;
+						continue;
 						}
 					else {
 						roff(box_open);
@@ -582,6 +588,60 @@ void md2roff(const char *docname, const char *source)
 						continue;
 						}
 					}
+				}
+			else if ( strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // BSD SYNTAX BLOCK
+				bool first;
+				d = flushln(d, dest);
+				p += strlen(KEY_BSDSYN);
+				dcopy(".SY ");
+				while ( isspace(*p) ) p ++;
+				while ( *p && *p != '\n' ) *d ++ = *p ++;
+				if ( *p ) *d ++ = *p ++;
+				while ( *p ) {
+					if ( !isblank(*p) ) {
+						if ( *p == '\n' )
+							break;
+						else {
+							int mode;
+							if ( *p == '-' ) { mode = 1; dcopy(".OP \\"); }
+							else { mode = 2; dcopy(".RI "); }
+							first = true;
+							while ( *p && *p != '\n' ) {
+								if ( *p == ' ' && first ) {
+									first = false;
+									if ( mode == 2 )
+										dcopy("\\ ");
+									}
+								else if ( !first ) {
+									if ( *p == ' ' ) {
+										dcopy("\\fR\\");
+										*d ++ = *p ++;
+										dcopy("\\f");
+										*d ++ = (mode == 1) ? 'I' : 'R';
+										continue;
+										}
+									else if ( strchr("[].-{}|", *p) ) {
+										dcopy("\\f");
+										*d ++ = (mode == 1) ? 'B' : 'R';
+										*d ++ = *p ++;
+										dcopy("\\f");
+										*d ++ = (mode == 1) ? 'I' : 'R';
+										continue;
+										}
+									}
+								*d ++ = *p ++;
+								}
+							if ( *p ) *d ++ = *p ++;
+							continue;
+							}
+						}
+					p ++;
+					}
+				dcopy(".YS");
+				*d = '\0';
+				puts(dest);
+				d = dest;
+				continue;
 				}
 			else if ( (*(p+1) == ' ' || *(p+1) == '\t')
 				&& (*p == '*' || *p == '+' || *p == '-') ) { // unordered list
