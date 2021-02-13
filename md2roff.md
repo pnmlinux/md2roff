@@ -4,7 +4,7 @@
 md2roff \- converts markdown documents to roff (man, mdoc, mm, mom).
 
 ## SYNOPSIS
-md2roff [*OPTION*]... [*FILE*]...
+	md2roff [*OPTION*] [*FILE*|-]
 
 ## DESCRIPTION
 *md2roff* converts the input files to groff (with man package) format

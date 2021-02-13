@@ -426,7 +426,7 @@ char *flushln(char *d, char *bf)
  *	this converts the file 'docname',
  *	that is loaded in 'source', to *-roff.
  */
-#define KEY_BSDSYN "SYNTAX:"
+#define KEY_BSDSYN "BSD-SYNTAX:"
 #define dcopy(c) { for ( const char *s = (c); *s; *d ++ = *s ++ ); }
 void md2roff(const char *docname, const char *source)
 {
