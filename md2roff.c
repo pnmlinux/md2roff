@@ -428,6 +428,8 @@ char *flushln(char *d, char *bf)
  *	that is loaded in 'source', to *-roff.
  */
 #define KEY_BSDSYN "BSD-SYNTAX:"
+#define ISMAN()		(mpack == mp_mdoc || mpack == mp_man)
+
 #define dcopy(c) { for ( const char *s = (c); *s; *d ++ = *s ++ ); }
 void md2roff(const char *docname, const char *source)
 {
@@ -590,8 +592,9 @@ void md2roff(const char *docname, const char *source)
 						}
 					}
 				}
-			else if ( strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // BSD SYNTAX BLOCK
+			else if ( ISMAN() && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // BSD SYNTAX BLOCK
 				bool first;
+				
 				d = flushln(d, dest);
 				p += strlen(KEY_BSDSYN);
 				dcopy(".SY ");
@@ -603,9 +606,12 @@ void md2roff(const char *docname, const char *source)
 						if ( *p == '\n' )
 							break;
 						else {
-							int mode;
-							if ( *p == '-' ) { mode = 1; dcopy(".OP \\"); }
-							else { mode = 2; dcopy(".RI "); }
+							int mode = 2;
+							if ( *p == '-' ) mode = 1;
+							if ( mode == 1 )
+								dcopy(".OP \\")
+							else 
+								dcopy(".RI ")
 							first = true;
 							while ( *p && *p != '\n' ) {
 								if ( *p == ' ' && first ) {
@@ -632,6 +638,7 @@ void md2roff(const char *docname, const char *source)
 									}
 								*d ++ = *p ++;
 								}
+							
 							if ( *p ) *d ++ = *p ++;
 							continue;
 							}

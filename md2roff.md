@@ -4,7 +4,7 @@
 md2roff \- converts markdown documents to roff (man, mdoc, mm, mom).
 
 ## SYNOPSIS
-	md2roff [*OPTION*] [*FILE*|-]
+**md2roff** [{-n|-d|-m|-o}] [_FILE_][-]
 
 ## DESCRIPTION
 *md2roff* converts the input files to groff (with man package) format
@@ -44,6 +44,15 @@ the section to '.TP' as in GNU's manuals.
 Example, link to [tcsh 1](man)
 ```
 ... link to [tcsh 1](man) ...
+```
+4. For man and mdoc modes, there is a special keyword that enables the BSD
+   syntax commands (.SY/.OP/.YS). Do not use if you dont know them.
+```
+## SYNOPSIS
+BSD-SYNTAX:
+	appname
+	-x arg
+	-y [arg]
 ```
 
 ## BUGS
