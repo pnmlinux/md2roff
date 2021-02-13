@@ -428,7 +428,50 @@ char *flushln(char *d, char *bf)
  *	that is loaded in 'source', to *-roff.
  */
 #define KEY_BSDSYN "SYNTAX:"
-#define ISMAN()		(mpack == mp_mdoc || mpack == mp_man)
+static char *month[] = {
+"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+"Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+NULL };
+
+//
+const char *get_man_header(const char *source, char *name, char *section, char *date)
+{
+	const char *p = source;
+	char *d;
+	
+	while ( isblank(*p) ) p ++;
+	d = name;
+	while ( *p ) {
+		if ( isspace(*p) ) break;
+		*d ++ = toupper(*p ++);
+		}
+	*d = '\0';
+	
+	while ( isblank(*p) ) p ++;
+	d = section;
+	while ( *p ) {
+		if ( isspace(*p) ) break;
+		*d ++ = *p ++;
+		}
+	*d = '\0';
+	
+	while ( isblank(*p) ) p ++;
+	if ( *p != '\n' ) {
+		d = date;
+		while ( *p ) {
+			if ( isspace(*p) ) break;
+			*d ++ = *p ++;
+			}
+		*d = '\0';
+		}
+	else {
+		time_t tt = time(0);   // get time now
+		struct tm *t = localtime(&tt);
+		sprintf(date, "%s %d %d", month[t->tm_mon], t->tm_mday,  t->tm_year+1900);
+		}
+	
+	return p;
+}
 
 #define dcopy(c) { for ( const char *s = (c); *s; *d ++ = *s ++ ); }
 void md2roff(const char *docname, const char *source)
@@ -439,10 +482,13 @@ void md2roff(const char *docname, const char *source)
 	bool	bold = false, italics = false;
 	bool	inside_list = false;
 	bool	title_level = 0;
-	char	secname[256];
+	char	secname[256], appname[64], appsec[64], appdate[64];
 
 	stk_list_p = 0; // reset stack
 	secname[0] = '\0';
+	dest = (char *) malloc(64*1024);
+	d = dest;
+
 	puts(".\\\" x-roff document");
 	switch ( mpack ) {
 	case mp_mm:
@@ -450,23 +496,42 @@ void md2roff(const char *docname, const char *source)
 		break;
 	case mp_mdoc:
 	case mp_man:
-		while ( isspace(*p) ) p ++;
 		if ( mpack == mp_mdoc )
 			puts(".do mso mdoc.tmac"); // BSD man
 		else
 			puts(".do mso man.tmac"); // Linux man
 		
-		if ( *p == '#' && isspace(*(p+1)) ) {
-			printf(".TH ");
-			p = println(p+2);
+		while ( isspace(*p) ) p ++;
+		if ( p[0] == '#' && isblank(p[1]) ) {
+			p = get_man_header(p+2, appname, appsec, appdate);
+			if ( mpack == mp_mdoc ) {
+				printf(".Dd $Mdocdate: %s $\n", appdate);
+				printf(".Dt %s %s\n", appname, appsec);
+				printf(".Os\n");
+				while ( *p != '\n' ) p ++;
+				}
+			else { // linux man
+				printf(".TH %s %s %s", appname, appsec, appdate);
+				if ( *p != '\n' )
+					p = println(p);
+				}
 			while ( isspace(*p) ) p ++;
 			}
-		else {
+		else { // no header specified
 			time_t tt = time(0);   // get time now
 			struct tm *t = localtime(&tt);
-			printf(".TH %s 7 %d-%02d-%02d document\n",
-				   docname,
-				   t->tm_year+1900, t->tm_mon+1, t->tm_mday);
+			
+			strcpy(appname, docname);
+			if ( mpack == mp_mdoc ) {
+				printf(".Dd $Mdocdate: %s %d %d $\n",
+					month[t->tm_mon], t->tm_mday,  t->tm_year+1900);
+				printf(".Dt %s %s\n", appname, "7");
+				printf(".Os\n");
+				}
+			else {
+				printf(".TH %s 7 %d-%02d-%02d document\n", docname,
+					t->tm_year+1900, t->tm_mon+1, t->tm_mday);
+				}
 			}
 		break;
 	case mp_mom:
@@ -479,8 +544,6 @@ void md2roff(const char *docname, const char *source)
 		break;
 		}
 
-	dest = (char *) malloc(64*1024);
-	d = dest;
 	while ( *p ) {
 
 		//////////////////////////////////
@@ -599,7 +662,7 @@ void md2roff(const char *docname, const char *source)
 						}
 					}
 				}
-			else if ( ISMAN() && strcmp(secname, "SYNOPSIS") == 0 && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // SYNTAX BLOCK (.SY/.YS)
+			else if ( mpack == mp_man && strcmp(secname, "SYNOPSIS") == 0 && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // SYNTAX BLOCK (.SY/.YS)
 				bool first;
 				
 				d = flushln(d, dest);
@@ -653,6 +716,42 @@ void md2roff(const char *docname, const char *source)
 					p ++;
 					}
 				dcopy(".YS");
+				*d = '\0';
+				puts(dest);
+				d = dest;
+				continue;
+				}
+			else if ( mpack == mp_mdoc && strcmp(secname, "SYNOPSIS") == 0 && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // SYNTAX BLOCK (.Nm)
+				d = flushln(d, dest);
+				p += strlen(KEY_BSDSYN);
+				dcopy(".Nm ");
+				while ( isspace(*p) ) p ++;
+				while ( *p && *p != '\n' ) *d ++ = *p ++;
+				if ( *p ) *d ++ = *p ++;
+				while ( *p ) {
+					if ( !isblank(*p) ) {
+						if ( *p == '\n' )
+							break;
+						else {
+							if ( p[0] == '-' || p[1] == '-' || p[2] == '-' )
+								dcopy(".Op ")
+							else
+								dcopy(".Ar ")
+							while ( *p && *p != '\n' ) {
+								switch ( *p ) {
+								case '-': dcopy(" Fl "); p ++; continue;
+								case '[': dcopy(" Oo "); p ++; continue;
+								case ']': dcopy(" Oc "); p ++; continue;
+								case ' ': dcopy(" Ar "); p ++; continue;
+									};
+								*d ++ = *p ++;
+								}
+							if ( *p ) *d ++ = *p ++;
+							continue;
+							}
+						}
+					p ++;
+					}
 				*d = '\0';
 				puts(dest);
 				d = dest;
