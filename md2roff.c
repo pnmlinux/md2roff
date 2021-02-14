@@ -704,7 +704,8 @@ void md2roff(const char *docname, const char *source)
 									else if ( strchr("[].-{}|", *p) ) {
 										dcopy("\\f");
 										*d ++ = (mode == 1) ? 'B' : 'R';
-										*d ++ = *p ++;
+										while ( strchr("[].-{}|", *p) )
+											*d ++ = *p ++;
 										dcopy("\\f");
 										*d ++ = (mode == 1) ? 'I' : 'R';
 										continue;
