@@ -270,7 +270,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".CODE\n"); break;
 		case mp_mdoc: printf(".Bd -literal -offset indent\n"); break;
-		default: printf(".RS 4\n.EX\n");
+		default: printf(".RS\n.EX\n");
 			}
 		break;
 
