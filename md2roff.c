@@ -279,7 +279,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".CODE OFF\n"); break;
 		case mp_mdoc: printf(".Ed\n"); break;
-		default: printf("\n.EE\n.RE\n");
+		default: printf(".EE\n.RE\n");
 			}
 		break;
 
@@ -514,6 +514,8 @@ void md2roff(const char *docname, const char *source)
 				printf(".TH %s %s %s", appname, appsec, appdate);
 				if ( *p != '\n' )
 					p = println(p);
+				else
+					printf("\n");
 				}
 			while ( isspace(*p) ) p ++;
 			}
@@ -554,6 +556,8 @@ void md2roff(const char *docname, const char *source)
 			
 			if ( strncmp(p, "```", 3) == 0 ) { // end of code-block
 				p += 3;
+				while ( *p != '\n' ) p ++;
+				if ( *p == '\n' ) p ++;
 				bcode = false;
 				roff(cblock_end);
 				d = flushln(d, dest);
@@ -793,6 +797,8 @@ void md2roff(const char *docname, const char *source)
 			else if ( strncmp(p, "```", 3) == 0 ) { // open code-block
 				bcode = true;
 				p += 3;
+				while ( *p != '\n' ) p ++;
+				if ( *p == '\n' ) p ++;
 				d = flushln(d, dest);
 				roff(cblock_open);
 				continue;
