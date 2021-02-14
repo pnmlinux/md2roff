@@ -903,7 +903,7 @@ void md2roff(const char *docname, const char *source)
 			if ( mpack == mp_mom )
 				d = stradd(d, "`\\*[CODE]");
 			else
-				d = stradd(d, "`\\f[CR]");
+				d = stradd(d, "‘\\f[CR]");
 			
 			while ( *p != '`' ) {
 				if ( *p == '\0' ) {
@@ -916,7 +916,7 @@ void md2roff(const char *docname, const char *source)
 			if ( mpack == mp_mom )
 				d = stradd(d, "\\*[CODE OFF]'");
 			else
-				d = stradd(d, "\\fP'");
+				d = stradd(d, "\\fP’");
 			}
 
 		//
