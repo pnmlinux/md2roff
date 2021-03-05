@@ -205,6 +205,7 @@ void roff(int type, ...)
 {
 	va_list	ap;
 	char	*title, *link;
+	char	punc;
 
 	if ( write_lock ) {
 		va_start(ap, type);
@@ -397,6 +398,7 @@ void roff(int type, ...)
 	// reference to man page
 	case man_ref:
 		link = va_arg(ap, char *);
+		punc = va_arg(ap, int);
 		switch ( mpack ) {
 		case mp_mdoc: printf(".Xr %s\n", link); break;
 		case mp_man: {
@@ -404,11 +406,15 @@ void roff(int type, ...)
 			char *p = strchr(tmp, ' ');
 			if ( p ) {
 				*p = '\0';
-				printf("\\fB%s\\fR(%s)\n", tmp, p+1);
+				printf("\\fB%s\\fR(%s)", tmp, p+1);
 				}
 			else
-				printf("\\fB%s\\fR\n", link);
+				printf("\\fB%s\\fR", link);
 			free(tmp);
+			if ( punc )
+				printf("%c\n", punc);
+			else
+				printf("\n");
 			}
 			break;
 		default: printf("%s\n", link);
@@ -1003,16 +1009,18 @@ void md2roff(const char *docname, const char *source)
 			   ) {
 				char *left = strdup(pstart);
 				char *rght = strdup(pnext+2);
-				char *cp;
+				char *cp, punc = '\0';
 
 				d = flushln(d, dest);
 				
 				cp = strchr(left, ']');	*cp = '\0';
 				cp = strchr(rght, ')');	*cp = '\0';
+				if ( strchr(".,)]}", cp[1]) )
+					punc = cp[1];
 				
 //				if ( bimg ) // RTFM
 				if ( strcmp(rght, "man") == 0 )
-					roff(man_ref, left);
+					roff(man_ref, left, (int) punc);
 				else
 					roff(url_mark, left, rght);
 				
@@ -1020,6 +1028,8 @@ void md2roff(const char *docname, const char *source)
 				free(left);
 				free(rght);
 				p = pfin + 1;
+				if ( punc )
+					p ++;
 				continue;
 				}
 			else {
