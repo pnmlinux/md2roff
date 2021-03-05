@@ -30,6 +30,7 @@
 // options
 typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom } macropackage_t;
 macropackage_t	mpack = mp_man;
+int	man_ofc = 0, write_lock = 0;
 
 /*
  * if 'when' is true, print error message and quit
@@ -204,6 +205,11 @@ void roff(int type, ...)
 	va_list	ap;
 	char	*title, *link;
 
+	if ( write_lock ) {
+		va_start(ap, type);
+		va_end(ap);
+		return;
+		}
 	va_start(ap, type);
 	switch ( type ) {
 
@@ -416,7 +422,8 @@ char *flushln(char *d, char *bf)
 			d ++;
 		if ( *d ) {
 			char *z = sqzdup(d);
-			puts(z);
+			if ( !write_lock )
+				puts(z);
 			free(z);
 			}
 		}
@@ -638,6 +645,15 @@ void md2roff(const char *docname, const char *source)
 							char *n;
 							for ( s = p, n = secname; *s != '\n'; *n ++ = *s ++ );
 							*n = '\0';
+							if ( man_ofc ) {
+								if ( strcmp(secname, "COPYRIGHT") == 0 \
+										|| strcmp(secname, "AUTHOR") == 0 \
+										|| strcmp(secname, "REPORTING BUGS") == 0 \
+										|| strcmp(secname, "AUTHORS") == 0 )
+									write_lock = 1;
+								else
+									write_lock = 0;
+								}
 							}
 							break;
 						case 3: roff(new_ss); break;
@@ -986,6 +1002,7 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 \t-d, --mdoc\n\t\tuse mdoc package (BSD man-pages)\n\
 \t-m, --mm\n\t\tuse mm package\n\
 \t-o, --mom\n\t\tuse mom package\n\
+\t-z, --man-official\n\t\ttry to be as official as man-pages(7)\n\
 \t-h, --help\n\t\tprint this screen\n\
 \t-v, --version\n\t\tprint version information\n\
 ";
@@ -1022,6 +1039,8 @@ int main(int argc, char *argv[])
 				mpack = mp_mdoc;
 			else if ( strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--mom") == 0 )
 				mpack = mp_mom;
+			else if ( strcmp(argv[i], "-z") == 0 || strcmp(argv[i], "--man-official") == 0 )
+				man_ofc = 1;
 			else
 				fprintf(stderr, "unknown option: [%s]\n", argv[i]);
 			}

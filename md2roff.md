@@ -31,6 +31,9 @@ use mdoc package (BSD man pages), see [groff_mdoc 7](man)
 #### -o, --mom
 use mom package, see [groff_mom 7](man)
 
+#### -z, --man-official
+try to use rules of [man-pages 7](man)
+
 ## NOTES
 1. If the documents starts with `# ` then creates the TH command with this;
 otherwise there will be a default TH with the file-name. Actually only the
