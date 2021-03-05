@@ -235,19 +235,28 @@ void roff(int type, ...)
 	case url_mark:
 		title = va_arg(ap, char *);
 		link = va_arg(ap, char *);
+		punc = va_arg(ap, int);
 		switch ( mpack ) {
 		case mp_man:
 			if ( strchr(link, '@') ) {
 				if ( strlen(title) )
-					printf(".MT %s\n%s\n.ME\n", link, title);
+					printf(".MT %s\n%s\n", link, title);
 				else
-					printf(".MT %s\n.ME\n", link);
+					printf(".MT %s\n", link);
+				if ( punc )
+					printf(".ME %c\n", punc);
+				else
+					printf(".ME\n");
 				}
 			else {
 				if ( strlen(title) )
-					printf(".UR %s\n%s\n.UE\n", link, title);
+					printf(".UR %s\n%s\n", link, title);
 				else
-					printf(".UR %s\n.UE\n", link);
+					printf(".UR %s\n", link);
+				if ( punc )
+					printf(".UE %c\n", punc);
+				else
+					printf(".UE\n");
 				}
 			break;
 		case mp_mdoc:
@@ -1022,7 +1031,7 @@ void md2roff(const char *docname, const char *source)
 				if ( strcmp(rght, "man") == 0 )
 					roff(man_ref, left, (int) punc);
 				else
-					roff(url_mark, left, rght);
+					roff(url_mark, left, rght, (int) punc);
 				
 				// finish
 				free(left);
