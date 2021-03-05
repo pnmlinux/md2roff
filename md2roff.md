@@ -1,4 +1,4 @@
-# md2roff 1 2017-05-09 GNU
+# md2roff 1 2021-03-05 GNU
 
 ## NAME
 md2roff \- converts markdown documents to roff (man, mdoc, mm, mom).
