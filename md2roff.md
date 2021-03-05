@@ -77,16 +77,20 @@ $ md2roff mytext.md | groff -Tps -man | okular -
 This document is example, its written in markdown and produce a nice man page.
 You can see the man page as exported to pdf (by groff) in this directory.
 
+## HOMEPAGE & REPORTING BUGS
+[](https://github.com/nereusx/md2roff)
+
 ## COPYRIGHT
-Copyright (C) 2017 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later (http://gnu.org/licenses/gpl.html).
+Copyright (C) 2017-2021 Nicholas Christopoulos [](nereus@freemail.gr).
+
+License GPLv3+: GNU GPL version 3 or later [](http://gnu.org/licenses/gpl.html).
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 ## AUTHOR
-Written by Nicholas Christopoulos (nereus@freemail.gr).
+Written by Nicholas Christopoulos.
 
 ## SEE ALSO
 [groff_man 7](man), [man-pages 7](man),
-[groff_man 7](man), [groff_mdoc 7](man), 
+[groff_man 7](man), [groff_mdoc 7](man),
 [groff_mm 7](man), [groff_mom 7](man).

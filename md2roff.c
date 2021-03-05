@@ -404,10 +404,10 @@ void roff(int type, ...)
 			char *p = strchr(tmp, ' ');
 			if ( p ) {
 				*p = '\0';
-				printf("\\fB%s\\fP(%s)\n", tmp, p+1);
+				printf("\\fB%s\\fR(%s)\n", tmp, p+1);
 				}
 			else
-				printf("\\fB%s\\fP\n", link);
+				printf("\\fB%s\\fR\n", link);
 			free(tmp);
 			}
 			break;
@@ -431,8 +431,28 @@ char *flushln(char *d, char *bf)
 			d ++;
 		if ( *d ) {
 			char *z = sqzdup(d);
-			if ( !write_lock )
-				puts(z);
+			char *p, *s, last;
+			
+			p = s = z; last = '*';
+			while ( *p ) {
+				if ( *p == '\002' ) // new-line required
+					*p = '\n';
+				else if ( *p == '\001' ) { // space required
+					if ( strchr(" \t\n\r([{", last) == NULL )
+						*p = ' ';
+					else {
+						*p = '\0';
+						if ( !write_lock ) printf("%s", s);
+						s = p + 1;
+						}
+					last = ' ';
+					}
+				else
+					last = *p;
+				p ++;
+				}
+			
+			if ( !write_lock ) puts(s);
 			free(z);
 			}
 		}
@@ -894,9 +914,9 @@ void md2roff(const char *docname, const char *source)
 				if ( strchr("({[,.;`'\" \t\n\r", pc) != NULL ) {
 					bold = true;
 					if ( mpack == mp_mom )
-						d = stradd(d, "\\*[BD]");
+						d = stradd(d, "\001\\*[BD]");
 					else
-						d = stradd(d, "\\fB");
+						d = stradd(d, "\001\\fB");
 					}
 				else {
 					*d ++ = *p;
@@ -928,9 +948,9 @@ void md2roff(const char *docname, const char *source)
 				if ( strchr("({[,.;`'\" \t\n\r", pc) != NULL ) {
 					italics = true;
 					if ( mpack == mp_mom )
-						d = stradd(d, "\\*[IT]");
+						d = stradd(d, "\001\\*[IT]");
 					else
-						d = stradd(d, "\\fI");
+						d = stradd(d, "\001\\fI");
 					}
 				else
 					*d ++ = *p;
