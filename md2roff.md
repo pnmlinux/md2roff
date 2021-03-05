@@ -37,7 +37,7 @@ try to use rules of [man-pages 7](man)
 ## NOTES
 1. If the documents starts with `# ` then creates the TH command with this;
 otherwise there will be a default TH with the file-name. Actually only the
-title (name) and section are required.
+title (name) and section are required. [man-pages 7](man)
 ```
 # title section date source manual
 ```

@@ -30,7 +30,7 @@
 // options
 typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom } macropackage_t;
 macropackage_t	mpack = mp_man;
-int	man_ofc = 0, write_lock = 0;
+int	man_ofc = 0, write_lock = 0, std_q = 1;
 
 /*
  * if 'when' is true, print error message and quit
@@ -236,10 +236,18 @@ void roff(int type, ...)
 		link = va_arg(ap, char *);
 		switch ( mpack ) {
 		case mp_man:
-			if ( strchr(link, '@') )
-				printf(".MT %s\n%s\n.ME\n", link, title);
-			else
-				printf(".UR %s\n%s\n.UE\n", link, title);
+			if ( strchr(link, '@') ) {
+				if ( strlen(title) )
+					printf(".MT %s\n%s\n.ME\n", link, title);
+				else
+					printf(".MT %s\n.ME\n", link);
+				}
+			else {
+				if ( strlen(title) )
+					printf(".UR %s\n%s\n.UE\n", link, title);
+				else
+					printf(".UR %s\n.UE\n", link);
+				}
 			break;
 		case mp_mdoc:
 			if ( strchr(link, '@') )
@@ -497,7 +505,7 @@ void md2roff(const char *docname, const char *source)
 	dest = (char *) malloc(64*1024);
 	d = dest;
 
-	puts(".\\\" x-roff document");
+	puts(".\\\" roff document");
 	switch ( mpack ) {
 	case mp_mm:
 		puts(".do mso m.tmac"); // mm package, AL BL DL LI LE
@@ -649,6 +657,7 @@ void md2roff(const char *docname, const char *source)
 							if ( man_ofc ) {
 								if ( strcmp(secname, "COPYRIGHT") == 0 \
 										|| strcmp(secname, "AUTHOR") == 0 \
+										|| strcmp(secname, "HOMEPAGE") == 0 \
 										|| strcmp(secname, "REPORTING BUGS") == 0 \
 										|| strcmp(secname, "AUTHORS") == 0 )
 									write_lock = 1;
@@ -867,8 +876,12 @@ void md2roff(const char *docname, const char *source)
 			bline = true;
 			}
 		else if (
-			( *p == '*' && *(p+1) == '*' ) ||
-			( *p == '_' && *(p+1) == '_' ) ) { // strong
+			(std_q && (*p == '*' && *(p+1) == '*' ) || ( *p == '_' && *(p+1) == '_' ))
+			||
+			(!std_q && (*p == '*' && *(p+1) == '*' ))
+			||
+			(!std_q && (*p == '*' ))
+			) { // strong
 			if ( bold ) {
 				bold = false;
 				if ( mpack == mp_mom )
@@ -878,7 +891,7 @@ void md2roff(const char *docname, const char *source)
 				}
 			else {
 				char pc = (p > source) ? *(p-1) : ' ';
-				if ( strchr("({[,.;`'\" \t\n", pc) != NULL ) {
+				if ( strchr("({[,.;`'\" \t\n\r", pc) != NULL ) {
 					bold = true;
 					if ( mpack == mp_mom )
 						d = stradd(d, "\\*[BD]");
@@ -890,10 +903,19 @@ void md2roff(const char *docname, const char *source)
 					*d ++ = *(p+1);
 					}
 				}
-			p += 2;
+			if ( p[1] == '*' )
+				p ++;
+			p ++;
 			continue;
 			}
-		else if ( *p == '*' ||  *p == '_' ) { // emphasis
+		else if ( // emphasis
+				(std_q && (*p == '*' || *p == '_'))
+				||
+				(!std_q && (*p == '_' && *(p+1) == '_'))
+				||
+				(!std_q && (*p == '_') )
+				) {
+		   	// emphasis
 			if ( italics ) {
 				italics = false;
 				if ( mpack == mp_mom )
@@ -903,7 +925,7 @@ void md2roff(const char *docname, const char *source)
 				}
 			else {
 				char pc = (p > source) ? *(p-1) : ' ';
-				if ( strchr("({[,.;`'\" \t\n", pc) != NULL ) {
+				if ( strchr("({[,.;`'\" \t\n\r", pc) != NULL ) {
 					italics = true;
 					if ( mpack == mp_mom )
 						d = stradd(d, "\\*[IT]");
@@ -913,6 +935,8 @@ void md2roff(const char *docname, const char *source)
 				else
 					*d ++ = *p;
 				}
+			if ( p[1] == '_' )
+				p ++;
 			p ++;
 			continue;
 			}
@@ -1005,6 +1029,7 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 \t-m, --mm\n\t\tuse mm package\n\
 \t-o, --mom\n\t\tuse mom package\n\
 \t-z, --man-official\n\t\ttry to be as official as man-pages(7)\n\
+\t-q, --non-std-q\n\t\tnon-standard emphasis/strong quotation\n\
 \t-h, --help\n\t\tprint this screen\n\
 \t-v, --version\n\t\tprint version information\n\
 ";
@@ -1043,6 +1068,8 @@ int main(int argc, char *argv[])
 				mpack = mp_mom;
 			else if ( strcmp(argv[i], "-z") == 0 || strcmp(argv[i], "--man-official") == 0 )
 				man_ofc = 1;
+			else if ( strcmp(argv[i], "-q") == 0 || strcmp(argv[i], "--non-std-q") == 0 )
+				std_q = 0;
 			else
 				fprintf(stderr, "unknown option: [%s]\n", argv[i]);
 			}
