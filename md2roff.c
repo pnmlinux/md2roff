@@ -167,7 +167,8 @@ const char *println(const char *src)
 	const char *p = src;
 
 	while ( *p ) {
-		putchar(*p);
+		if ( !write_lock )
+			putchar(*p);
 		p ++;
 		if ( *(p-1) == '\n' )
 			break;
@@ -640,7 +641,7 @@ void md2roff(const char *docname, const char *source)
 						while ( *p == ' ' || *p == '\t' ) p ++;
 						switch ( level ) {
 						case 1: roff(new_sh); break; // TH?
-						case 2: roff(new_sh); {
+						case 2: {
 							const char *s;
 							char *n;
 							for ( s = p, n = secname; *s != '\n'; *n ++ = *s ++ );
@@ -654,6 +655,7 @@ void md2roff(const char *docname, const char *source)
 								else
 									write_lock = 0;
 								}
+							if ( !write_lock ) roff(new_sh);
 							}
 							break;
 						case 3: roff(new_ss); break;
