@@ -37,14 +37,14 @@ try to use rules of [man-pages 7](man).
 ## NOTES
 1. If the documents starts with `# ` then creates the TH command with this;
 otherwise there will be a default TH with the file-name. Actually only the
-title (name) and section are required.[man-pages 7](man)
+title (name) and section are required. [man-pages 7](man)
 ```
 # title section date source manual
 ```
 2. If you write man page, use `####` for each option to automatically convert
 the section to '.TP' as in GNU's manuals.
 3. Use special link type (man) to link man pages.
-Example, link to [tcsh 1](man)
+Example, link to [tcsh 1](man).
 ```
 ... link to [tcsh 1](man) ...
 ```
