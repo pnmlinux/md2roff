@@ -20,24 +20,24 @@ displays a short-help text and exits
 displays the program version, copyright and license information and exists.
 
 #### -n, --man
-use man package (linux man pages, default), see [groff_man 7](man)
+use man package (linux man pages, default), see [groff_man 7](man).
 
 #### -m, --mm
 use mm package, see [groff_mm 7](man)
 
 #### -d, --mdoc
-use mdoc package (BSD man pages), see [groff_mdoc 7](man)
+use mdoc package (BSD man pages), see [groff_mdoc 7](man).
 
 #### -o, --mom
-use mom package, see [groff_mom 7](man)
+use mom package, see [groff_mom 7](man).
 
 #### -z, --man-official
-try to use rules of [man-pages 7](man)
+try to use rules of [man-pages 7](man).
 
 ## NOTES
 1. If the documents starts with `# ` then creates the TH command with this;
 otherwise there will be a default TH with the file-name. Actually only the
-title (name) and section are required. [man-pages 7](man)
+title (name) and section are required.[man-pages 7](man)
 ```
 # title section date source manual
 ```
@@ -94,3 +94,4 @@ Written by Nicholas Christopoulos.
 [groff_man 7](man), [man-pages 7](man),
 [groff_man 7](man), [groff_mdoc 7](man),
 [groff_mm 7](man), [groff_mom 7](man).
+
