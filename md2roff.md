@@ -23,7 +23,7 @@ displays the program version, copyright and license information and exists.
 use man package (linux man pages, default), see [groff_man 7](man).
 
 #### -m, --mm
-use mm package, see [groff_mm 7](man)
+use mm package, see [groff_mm 7](man).
 
 #### -d, --mdoc
 use mdoc package (BSD man pages), see [groff_mdoc 7](man).
@@ -37,7 +37,7 @@ try to use rules of [man-pages 7](man).
 ## NOTES
 1. If the documents starts with `# ` then creates the TH command with this;
 otherwise there will be a default TH with the file-name. Actually only the
-title (name) and section are required. [man-pages 7](man)
+title (name) and section are required. See [man-pages 7](man).
 ```
 # title section date source manual
 ```
@@ -78,12 +78,12 @@ This document is example, its written in markdown and produce a nice man page.
 You can see the man page as exported to pdf (by groff) in this directory.
 
 ## HOMEPAGE & REPORTING BUGS
-[](https://github.com/nereusx/md2roff)
+[https://github.com/nereusx/md2roff](https://github.com/nereusx/md2roff)
 
 ## COPYRIGHT
-Copyright (C) 2017-2021 Nicholas Christopoulos [](nereus@freemail.gr).
+Copyright (C) 2017-2021 Nicholas Christopoulos [nereus@freemail.gr](nereus@freemail.gr).
 
-License GPLv3+: GNU GPL version 3 or later [](http://gnu.org/licenses/gpl.html).
+License GPLv3+: GNU GPL version 3 or later [http://gnu.org/licenses/gpl.html](http://gnu.org/licenses/gpl.html).
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 

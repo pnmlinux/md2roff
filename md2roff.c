@@ -79,7 +79,7 @@ char *sqzdup(const char *source)
 			if ( !lc ) {
 				lc = 1;
 				if ( p > source ) {
-					if ( isalnum(*(p - 1)) )
+					if ( isalnum(*(p-1)) || strchr(",;.)}]", *(p-1)) )
 						*d ++ = ' ';
 					else {
 						char *nc = p;
@@ -239,7 +239,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_man:
 			if ( strchr(link, '@') ) {
-				if ( strlen(title) )
+				if ( strlen(title) && strcmp(title, link) != 0 )
 					printf(".MT %s\n%s\n", link, title);
 				else
 					printf(".MT %s\n", link);
@@ -249,7 +249,7 @@ void roff(int type, ...)
 					printf(".ME\n");
 				}
 			else {
-				if ( strlen(title) )
+				if ( strlen(title) && strcmp(title, link) != 0 )
 					printf(".UR %s\n%s\n", link, title);
 				else
 					printf(".UR %s\n", link);
@@ -446,28 +446,7 @@ char *flushln(char *d, char *bf)
 			d ++;
 		if ( *d ) {
 			char *z = sqzdup(d);
-			char *p, *s, last;
-			
-			p = s = z; last = '*';
-			while ( *p ) {
-				if ( *p == '\002' ) // new-line required
-					*p = '\n';
-				else if ( *p == '\001' ) { // space required
-					if ( strchr(" \t\n\r([{", last) == NULL )
-						*p = ' ';
-					else {
-						*p = '\0';
-						if ( !write_lock ) printf("%s", s);
-						s = p + 1;
-						}
-					last = ' ';
-					}
-				else
-					last = *p;
-				p ++;
-				}
-			
-			if ( !write_lock ) puts(s);
+			if ( !write_lock ) puts(z);
 			free(z);
 			}
 		}
@@ -927,18 +906,20 @@ void md2roff(const char *docname, const char *source)
 			else {
 				char pc = (p > source) ? *(p-1) : ' ';
 				if ( strchr("({[,.;`'\" \t\n\r", pc) != NULL ) {
+					if ( pc == ';' || pc == ',' || pc == '.' ) *d ++ = ' ';
 					bold = true;
 					if ( mpack == mp_mom )
-						d = stradd(d, "\001\\*[BD]");
+						d = stradd(d, "\\*[BD]");
 					else
-						d = stradd(d, "\001\\fB");
+						d = stradd(d, "\\fB");
 					}
 				else {
 					*d ++ = *p;
-					*d ++ = *(p+1);
+					if ( p[1] == '*' || p[1] == '_' )
+						*d ++ = *(p+1);
 					}
 				}
-			if ( p[1] == '*' )
+			if ( p[1] == '*' || p[1] == '_' )
 				p ++;
 			p ++;
 			continue;
@@ -961,16 +942,20 @@ void md2roff(const char *docname, const char *source)
 			else {
 				char pc = (p > source) ? *(p-1) : ' ';
 				if ( strchr("({[,.;`'\" \t\n\r", pc) != NULL ) {
+					if ( pc == ';' || pc == ',' || pc == '.' ) *d ++ = ' ';
 					italics = true;
 					if ( mpack == mp_mom )
-						d = stradd(d, "\001\\*[IT]");
+						d = stradd(d, "\\*[IT]");
 					else
-						d = stradd(d, "\001\\fI");
+						d = stradd(d, "\\fI");
 					}
-				else
+				else {
 					*d ++ = *p;
+					if ( p[1] == '*' || p[1] == '_' )
+						*d ++ = *(p+1);
+					}
 				}
-			if ( p[1] == '_' )
+			if ( p[1] == '_' || p[1] == '*' )
 				p ++;
 			p ++;
 			continue;
@@ -1026,7 +1011,7 @@ void md2roff(const char *docname, const char *source)
 				cp = strchr(rght, ')');	*cp = '\0';
 				if ( strchr(".,)]}", cp[1]) )
 					punc = cp[1];
-				
+
 //				if ( bimg ) // RTFM
 				if ( strcmp(rght, "man") == 0 )
 					roff(man_ref, left, (int) punc);
