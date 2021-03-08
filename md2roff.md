@@ -1,10 +1,10 @@
-# md2roff 1 2021-03-05 GNU
+# md2roff 1 2021-03-09 "NDC Tools Collection"
 
 ## NAME
 md2roff \- converts markdown documents to roff (man, mdoc, mm, mom).
 
 ## SYNOPSIS
-**md2roff** [{-n|-d|-m|-o}] [_FILE_][-]
+	**md2roff** [{-n[-z]|-d|-m|-o}] [_FILE_] [-]
 
 ## DESCRIPTION
 *md2roff* converts the input files to groff (with man package) format
@@ -63,7 +63,7 @@ SYNTAX:
 ## BUGS
 A lot. Fix and send.
 
-## EXAMPLE
+## EXAMPLES
 View a markdown as console man page:
 ```
 $ md2roff mytext.md | groff -Tutf8 -man | $PAGER
@@ -77,7 +77,7 @@ $ md2roff mytext.md | groff -Tps -man | okular -
 This document is example, its written in markdown and produce a nice man page.
 You can see the man page as exported to pdf (by groff) in this directory.
 
-## HOMEPAGE & REPORTING BUGS
+## HOMEPAGE
 [https://github.com/nereusx/md2roff](https://github.com/nereusx/md2roff)
 
 ## COPYRIGHT

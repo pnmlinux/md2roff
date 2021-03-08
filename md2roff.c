@@ -31,6 +31,39 @@
 typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom } macropackage_t;
 macropackage_t	mpack = mp_man;
 int	man_ofc = 0, write_lock = 0, std_q = 1;
+typedef struct { const char *wrong, *correct; } dict_line_t;
+dict_line_t mdic[] = {
+{ "bitmask", "bit mask" },
+{ "builtin", "build-in" },
+{ "epoch", "Epoch" },
+{ "file name", "filename" },
+{ "file system", "filesystem" },
+{ "host name", "hostname" },
+{ "i-node", "inode" },
+{ "i-nodes", "inodes" },
+{ "lower case", "lowercase" },
+{ "lower-case", "lowercase" },
+{ "upper case", "uppercase" },
+{ "upper-case", "uppercase" },
+{ "path name", "pathname" },
+{ "pseudo-terminal", "pseudoterminal" },
+{ "real time", "real-time" },
+{ "realtime", "real-time" },
+{ "runtime", "run time" },
+{ "super user", "superuser" },
+{ "super-user", "superuser" },
+{ "super block", "superblock" },
+{ "super-block", "superblock" },
+{ "time stamp", "timestamp" },
+{ "time zone", "timezone" },
+{ "userspace", "user space" },
+{ "user name", "username" },
+{ "x86_64", "x86-64" },
+{ "zeroes", "zeros" }, // ?!
+{ "32bit", "32-bit" },
+{ "Unices", "Unix systems" },
+{ "Unixes", "Unix systems" },
+{ NULL, NULL } };
 
 /*
  * if 'when' is true, print error message and quit
@@ -295,7 +328,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".CODE\n"); break;
 		case mp_mdoc: printf(".Bd -literal -offset indent\n"); break;
-		default: printf(".RS\n.EX\n");
+		default: printf(".in +4n\n.EX\n");
 			}
 		break;
 
@@ -304,7 +337,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".CODE OFF\n"); break;
 		case mp_mdoc: printf(".Ed\n"); break;
-		default: printf(".EE\n.RE\n");
+		default: printf(".EE\n.in\n");
 			}
 		break;
 
@@ -415,10 +448,10 @@ void roff(int type, ...)
 			char *p = strchr(tmp, ' ');
 			if ( p ) {
 				*p = '\0';
-				printf("\\fB%s\\fR(%s)", tmp, p+1);
+				printf(".BR %s (%s)", tmp, p+1);
 				}
 			else
-				printf("\\fB%s\\fR", link);
+				printf(".BR %s", link);
 			free(tmp);
 			if ( punc )
 				printf("%c\n", punc);
@@ -519,7 +552,7 @@ void md2roff(const char *docname, const char *source)
 	dest = (char *) malloc(64*1024);
 	d = dest;
 
-	puts(".\\\" roff document");
+	puts(".\\# roff document");
 	switch ( mpack ) {
 	case mp_mm:
 		puts(".do mso m.tmac"); // mm package, AL BL DL LI LE
