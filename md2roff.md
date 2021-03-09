@@ -7,9 +7,9 @@ md2roff \- converts markdown documents to roff (man, mdoc, mm, mom).
 COMMAND: md2roff [{-n[-z]|-d|-m|-o}] [FILE] [-]
 
 ## DESCRIPTION
-*md2roff* converts the input files to groff (with man package) format
-and prints the result to *stdout*. If the *FILE* is `-` then it reads
-from *stdin*.
+**md2roff** converts the input files to **groff** (with man package) format
+and prints the result to **stdout**. If the *FILE* is `-` then it reads
+from **stdin**.
 
 ## OPTIONS
 
@@ -41,13 +41,16 @@ title (name) and section are required. See [man-pages 7](man).
 ```
 # title section date source manual
 ```
+
 2. If you write man page, use `####` for each option to automatically convert
 the section to '.TP' as in GNU's manuals.
+
 3. Use special link type (man) to link man pages.
 Example, link to [tcsh 1](man).
 ```
 ... link to [tcsh 1](man) ...
 ```
+
 4. For man and mdoc modes, there is a special keyword `SYNTAX:` in SYNOPSIS
    section that enables the syntax commands (.SY/.OP/.YS). Each line starts with
    `-` translated to .OP otherwise to .RI, except the first which is the command
@@ -59,10 +62,11 @@ SYNTAX:
 	-x arg
 	-y [arg]
 ```
+
 5. For man and mdoc modes, there is a special keyword `COMMAND:` in SYNOPSIS
    section that enables the syntax commands (custom style, a pretty one).
    COMMAND takes one text string as parameter which is the full expression of
-   the syntax. For multiline use special character backslash at the end of the line.
+   the syntax. For multi-line use special character backslash at the end of the line.
 
 ## BUGS
 A lot. Fix and send.
@@ -79,7 +83,7 @@ $ md2roff mytext.md | groff -Tps -man | okular -
 ```
 
 This document is example, its written in markdown and produce a nice man page.
-You can see the man page as exported to pdf (by groff) in this directory.
+You can see the man page as exported to _pdf_ (by **groff**) in this directory.
 
 ## HOMEPAGE
 [https://github.com/nereusx/md2roff](https://github.com/nereusx/md2roff)

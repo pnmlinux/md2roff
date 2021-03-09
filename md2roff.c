@@ -845,6 +845,7 @@ void md2roff(const char *docname, const char *source)
 				p += strlen(KEY_NDCCMD);
 				int state = 'R';
 				dcopy("\\fB");
+				while ( isblank(*p) ) p ++;
 				while ( isalnum(*p) )
 					*d ++ = *p ++;
 				dcopy("\\fR");
@@ -895,6 +896,7 @@ void md2roff(const char *docname, const char *source)
 						*d ++ = *p ++;
 						}
 					}
+				d = flushln(d, dest);
 				}
 			else if ( (*(p+1) == ' ' || *(p+1) == '\t')
 				&& (*p == '*' || *p == '+' || *p == '-') ) { // unordered list
