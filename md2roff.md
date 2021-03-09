@@ -52,8 +52,9 @@ Example, link to [tcsh 1](man).
 ... link to [tcsh 1](man) ...
 ```
 
-4. For man and mdoc modes, there is a special keyword `COMMAND:` in SYNOPSIS
-   section that enables the syntax commands (custom style, a pretty one).
+4. For man modes, there is a special keyword `COMMAND:` in SYNOPSIS
+   section that enables the syntax commands (command and options in bold,
+   separators/syntax-symbols in no-color, parameters in italics).
    COMMAND takes one text string as parameter which is the full expression of
    the syntax. For multi-line use special character backslash at the end of the line.
 
