@@ -4,7 +4,7 @@
 md2roff \- converts markdown documents to roff (man, mdoc, mm, mom).
 
 ## SYNOPSIS
-	**md2roff** [{-n[-z]|-d|-m|-o}] [_FILE_] [-]
+COMMAND: md2roff [{-n[-z]|-d|-m|-o}] [FILE] [-]
 
 ## DESCRIPTION
 *md2roff* converts the input files to groff (with man package) format
@@ -59,6 +59,10 @@ SYNTAX:
 	-x arg
 	-y [arg]
 ```
+5. For man and mdoc modes, there is a special keyword `COMMAND:` in SYNOPSIS
+   section that enables the syntax commands (custom style, a pretty one).
+   COMMAND takes one text string as parameter which is the full expression of
+   the syntax. For multiline use special character backslash at the end of the line.
 
 ## BUGS
 A lot. Fix and send.

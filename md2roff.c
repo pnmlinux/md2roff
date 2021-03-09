@@ -490,7 +490,8 @@ char *flushln(char *d, char *bf)
  *	this converts the file 'docname',
  *	that is loaded in 'source', to *-roff.
  */
-#define KEY_BSDSYN "SYNTAX:"
+#define KEY_GNUSYN "SYNTAX:"
+#define KEY_NDCCMD "COMMAND:"
 static char *month[] = {
 "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -740,11 +741,12 @@ void md2roff(const char *docname, const char *source)
 						}
 					}
 				}
-			else if ( mpack == mp_man && strcmp(secname, "SYNOPSIS") == 0 && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // SYNTAX BLOCK (.SY/.YS)
+			else if ( mpack == mp_man && strcmp(secname, "SYNOPSIS") == 0
+					&& strncmp(p, KEY_GNUSYN, strlen(KEY_GNUSYN)) == 0 ) { // SYNTAX BLOCK (.SY/.YS)
 				bool first;
 				
 				d = flushln(d, dest);
-				p += strlen(KEY_BSDSYN);
+				p += strlen(KEY_GNUSYN);
 				dcopy(".SY ");
 				while ( isspace(*p) ) p ++;
 				while ( *p && *p != '\n' ) *d ++ = *p ++;
@@ -800,9 +802,10 @@ void md2roff(const char *docname, const char *source)
 				d = dest;
 				continue;
 				}
-			else if ( mpack == mp_mdoc && strcmp(secname, "SYNOPSIS") == 0 && strncmp(p, KEY_BSDSYN, strlen(KEY_BSDSYN)) == 0 ) { // SYNTAX BLOCK (.Nm)
+			else if ( mpack == mp_mdoc && strcmp(secname, "SYNOPSIS") == 0 && \
+					strncmp(p, KEY_GNUSYN, strlen(KEY_GNUSYN)) == 0 ) { // SYNTAX BLOCK (.Nm)
 				d = flushln(d, dest);
-				p += strlen(KEY_BSDSYN);
+				p += strlen(KEY_GNUSYN);
 				dcopy(".Nm ");
 				while ( isspace(*p) ) p ++;
 				while ( *p && *p != '\n' ) *d ++ = *p ++;
@@ -835,6 +838,63 @@ void md2roff(const char *docname, const char *source)
 				puts(dest);
 				d = dest;
 				continue;
+				}
+			else if ( mpack == mp_man && strcmp(secname, "SYNOPSIS") == 0
+					&& strncmp(p, KEY_NDCCMD, strlen(KEY_NDCCMD)) == 0 ) { // NDC's pretty style for commands
+				d = flushln(d, dest);
+				p += strlen(KEY_NDCCMD);
+				int state = 'R';
+				dcopy("\\fB");
+				while ( isalnum(*p) )
+					*d ++ = *p ++;
+				dcopy("\\fR");
+				while ( *p ) {
+					// continue to the next line
+					if ( *p == '\\' ) {
+						while ( *p && *p != '\n' ) p ++;
+						if ( *p == '\n' ) p ++;
+						continue;
+						}
+					
+					// end of string, reset to defaults and exit loop
+					if ( *p == '\n' || *p == '\r' ) {
+						if ( state != 'R' )
+							dcopy("\\fR");
+						break;
+						}
+					
+					// other characters
+					switch ( *p ) { // separator, nocolor
+					case ' ': case '\t':
+					case '[': case '{': case '(':
+					case ']': case '}': case ')':
+					case ',': case '|': case '.':
+					case '=':
+						if ( state != 'R' ) {
+							dcopy("\\fR");
+							state = 'R';
+							}
+						*d ++ = *p ++;
+						break;
+					case '-': // short or long option, bold
+						if ( state != 'B' ) {
+							dcopy("\\fB");
+							state = 'B';
+							}
+						if ( p[1] == '-' ) // double minus
+							*d ++ = *p ++;
+						*d ++ = *p ++;
+						while ( isalnum(*p) )
+							*d ++ = *p ++;
+						break;
+					default: // normal parameter, italics
+						if ( state != 'I' ) {
+							dcopy("\\fI");
+							state = 'I';
+							}
+						*d ++ = *p ++;
+						}
+					}
 				}
 			else if ( (*(p+1) == ' ' || *(p+1) == '\t')
 				&& (*p == '*' || *p == '+' || *p == '-') ) { // unordered list
@@ -1092,7 +1152,7 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 ";
 
 static char *version ="\
-md2roff, version 1.3\n\
+md2roff, version 1.4\n\
 Copyright (C) 2017-2021 Nicholas Christopoulos <mailto:nereus@freemail.gr>.\n\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n\
 This is free software: you are free to change and redistribute it.\n\
