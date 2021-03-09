@@ -932,6 +932,13 @@ void md2roff(const char *docname, const char *source)
 							}
 						*d ++ = *p ++;
 						break;
+					case '+': case '!':
+						if ( state != 'B' ) {
+							dcopy("\\fB");
+							state = 'B';
+							}
+						*d ++ = *p ++;
+						break;
 					case '-': // short or long option, bold
 						if ( state != 'B' ) {
 							dcopy("\\fB");
