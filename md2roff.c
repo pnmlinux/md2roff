@@ -719,9 +719,62 @@ void md2roff(const char *docname, const char *source)
 						case 4:
 						default:
 							if ( mpack == mp_man ) {
-								printf(".TP\n\\fB");
-								p = println(p);
-								printf("\\fR");
+								d = flushln(d, dest);
+								printf(".TP\n");
+								int state = 'R';
+								dcopy("\\fB");
+								while ( isblank(*p) ) p ++;
+								while ( isalnum(*p) )
+									*d ++ = *p ++;
+								dcopy("\\fR");
+								while ( *p ) {
+									// continue to the next line
+									if ( *p == '\\' ) {
+										while ( *p && *p != '\n' ) p ++;
+										if ( *p == '\n' ) p ++;
+										continue;
+										}
+									
+									// end of string, reset to defaults and exit loop
+									if ( *p == '\n' || *p == '\r' ) {
+										if ( state != 'R' )
+											dcopy("\\fR");
+										break;
+										}
+									
+									// other characters
+									switch ( *p ) { // separator, nocolor
+									case ' ': case '\t':
+									case '[': case '{': case '(':
+									case ']': case '}': case ')':
+									case ',': case '|': case '.':
+									case '=':
+										if ( state != 'R' ) {
+											dcopy("\\fR");
+											state = 'R';
+											}
+										*d ++ = *p ++;
+										break;
+									case '-': // short or long option, bold
+										if ( state != 'B' ) {
+											dcopy("\\fB");
+											state = 'B';
+											}
+										if ( p[1] == '-' ) // double minus
+											*d ++ = *p ++;
+										*d ++ = *p ++;
+										while ( isalnum(*p) )
+											*d ++ = *p ++;
+										break;
+									default: // normal parameter, italics
+										if ( state != 'I' ) {
+											dcopy("\\fI");
+											state = 'I';
+											}
+										*d ++ = *p ++;
+										}
+									}
+								d = flushln(d, dest);
 								}
 							else
 								roff(new_s4);

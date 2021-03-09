@@ -43,7 +43,8 @@ title (name) and section are required. See [man-pages 7](man).
 ```
 
 2. If you write man page, use `####` for each option to automatically convert
-the section to '.TP' as in GNU's manuals.
+the section to '.TP' as in GNU's manuals. Also this enables 'COMMAND' (see 4)
+style for this line only and only in man-page output mode.
 
 3. Use special link type (man) to link man pages.
 Example, link to [tcsh 1](man).
@@ -51,7 +52,12 @@ Example, link to [tcsh 1](man).
 ... link to [tcsh 1](man) ...
 ```
 
-4. For man and mdoc modes, there is a special keyword `SYNTAX:` in SYNOPSIS
+4. For man and mdoc modes, there is a special keyword `COMMAND:` in SYNOPSIS
+   section that enables the syntax commands (custom style, a pretty one).
+   COMMAND takes one text string as parameter which is the full expression of
+   the syntax. For multi-line use special character backslash at the end of the line.
+
+5. For man and mdoc modes, there is a special keyword `SYNTAX:` in SYNOPSIS
    section that enables the syntax commands (.SY/.OP/.YS). Each line starts with
    `-` translated to .OP otherwise to .RI, except the first which is the command
    name.
@@ -63,10 +69,6 @@ SYNTAX:
 	-y [arg]
 ```
 
-5. For man and mdoc modes, there is a special keyword `COMMAND:` in SYNOPSIS
-   section that enables the syntax commands (custom style, a pretty one).
-   COMMAND takes one text string as parameter which is the full expression of
-   the syntax. For multi-line use special character backslash at the end of the line.
 
 ## BUGS
 A lot. Fix and send.
