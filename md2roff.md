@@ -22,6 +22,9 @@ displays the program version, copyright and license information and exists.
 #### -n, --man
 use man package (linux man pages, default), see [groff_man 7](man).
 
+#### -s, --ms
+use ms package, see [groff_ms 7](man).
+
 #### -m, --mm
 use mm package, see [groff_mm 7](man).
 
@@ -104,5 +107,6 @@ Written by Nicholas Christopoulos.
 ## SEE ALSO
 [groff_man 7](man), [man-pages 7](man),
 [groff_man 7](man), [groff_mdoc 7](man),
-[groff_mm 7](man), [groff_mom 7](man).
+[groff_mm 7](man), [groff_mom 7](man),
+[groff_ms 7](man).
 
