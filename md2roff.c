@@ -13,6 +13,7 @@
  *		2019-02-10, cleanup
  *		2021-02-13, SYNTAX and a few improvements for man-pages
  *		2021-03-09, v1.4
+ *		2021-06-26, v1.5, ms package
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License.
@@ -29,7 +30,7 @@
 #include <errno.h>
 
 // options
-typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom } macropackage_t;
+typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom, mp_ms } macropackage_t;
 macropackage_t	mpack = mp_man;
 int	man_ofc = 0, write_lock = 0, std_q = 1;
 typedef struct { const char *wrong, *correct; } dict_line_t;
@@ -261,6 +262,7 @@ void roff(int type, ...)
 	case ln_brk:
 		switch ( mpack ) {
 		case mp_mom:	puts(".BR"); break;	// or .br or .EL or .LINEBREAK ????
+		case mp_ms:		puts(".BR"); break;
 		default:		puts(".br");
 			}
 		break;
@@ -300,6 +302,7 @@ void roff(int type, ...)
 				printf(".Lk %s \"%s\"\n", link, title);
 			break;
 		case mp_mm: // there is no such thing...
+		case mp_ms:
 			printf("%s <%s>\n", title, link);
 			break;
 		case mp_mom:
@@ -312,6 +315,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom: puts(".DRH"); break;
 		case mp_man: puts(".B"); break;
+		case mp_ms: puts(".B1"); break;
 		default: puts(".FT B");
 			}
 		break;
@@ -320,6 +324,7 @@ void roff(int type, ...)
 	case box_close:
 		switch ( mpack ) {
 		case mp_mom: puts(".DRH"); break;
+		case mp_ms: puts(".B2"); break;
 		default: puts(".FT P"); 
 			}
 		break;
@@ -359,7 +364,7 @@ void roff(int type, ...)
 				};
 			break;
 		case mp_mdoc: puts(".Bl -enum -offset indent"); break;
-		case mp_mm: puts(".AL");
+		case mp_mm: puts(".AL"); break;
 			}
 		break;
 
@@ -393,6 +398,7 @@ void roff(int type, ...)
 		case mp_mom:  puts(".ITEM"); break;
 		case mp_mdoc: puts(".It"); break;
 		case mp_man:
+		case mp_ms:
 			if ( stk_list_p ) {
 				if ( stk_list[stk_list_p-1] == ul )
 					puts(".IP \\(bu 4");
@@ -416,6 +422,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".HEADING 1 \""); break;
 		case mp_mdoc: printf(".Sh "); break;
+		case mp_ms: puts(".SH"); break; /* .SH\n...\n.LP|.PP\n */
 		default: printf(".SH ");
 			}
 		break;
@@ -425,6 +432,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".HEADING 2 \""); break;
 		case mp_mdoc: printf(".Ss "); break;
+		case mp_ms: puts(".SH"); break;
 		default: printf(".SS ");
 			}
 		break;
@@ -433,6 +441,7 @@ void roff(int type, ...)
 	case new_s4:
 		switch ( mpack ) {
 		case mp_mom:  printf(".HEADING 3 \""); break;
+		case mp_ms: puts(".SH"); break;
 		case mp_mdoc: printf(".Ss "); break;
 		default: printf(".SS ");
 			}
@@ -559,6 +568,23 @@ void md2roff(const char *docname, const char *source)
 	switch ( mpack ) {
 	case mp_mm:
 		puts(".do mso m.tmac"); // mm package, AL BL DL LI LE
+		break;
+	case mp_ms:
+		puts(".do mso ms.tmac"); // ms package
+		while ( isspace(*p) ) p ++;
+		if ( p[0] == '#' && isblank(p[1]) ) {
+			puts(".TL");
+			puts(p + 2);
+			puts(".\\# .AU");
+			puts(".\\# Author");
+			puts(".\\# .AI");
+			puts(".\\# Author's institution(s)");
+			puts(".\\# .AB");
+			puts(".\\# Abstract; to be placed on the cover sheet of a paper.");
+			puts(".\\# Line length is 5/6 of normal; use .11 here to change.");
+			puts(".\\# .AE");
+			puts(".PP");
+			}
 		break;
 	case mp_mdoc:
 	case mp_man:
@@ -1210,11 +1236,14 @@ void md2roff(const char *docname, const char *source)
 /*
  * --- main() ---
  */
+#define APPVER	"1.5"
+
 static char *usage ="\
 usage: md2roff [options] [file1 .. [fileN]]\n\
 \t-n, --man\n\t\tuse man package (default)\n\
 \t-d, --mdoc\n\t\tuse mdoc package (BSD man-pages)\n\
 \t-m, --mm\n\t\tuse mm package\n\
+\t-s, --ms\n\t\tuse ms package\n\
 \t-o, --mom\n\t\tuse mom package\n\
 \t-z, --man-official\n\t\ttry to be as official as man-pages(7)\n\
 \t-q, --non-std-q\n\t\tnon-standard emphasis/strong quotation\n\
@@ -1223,7 +1252,7 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 ";
 
 static char *version ="\
-md2roff, version 1.4\n\
+md2roff, version "APPVER"\n\
 Copyright (C) 2017-2021 Nicholas Christopoulos <mailto:nereus@freemail.gr>.\n\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n\
 This is free software: you are free to change and redistribute it.\n\
@@ -1250,6 +1279,8 @@ int main(int argc, char *argv[])
 				mpack = mp_man;
 			else if ( strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--mm") == 0 )
 				mpack = mp_mm;
+			else if ( strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--ms") == 0 )
+				mpack = mp_ms;
 			else if ( strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--mdoc") == 0 )
 				mpack = mp_mdoc;
 			else if ( strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--mom") == 0 )
@@ -1275,3 +1306,4 @@ int main(int argc, char *argv[])
 
 	return EXIT_SUCCESS;
 }
+
