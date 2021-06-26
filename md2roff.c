@@ -334,6 +334,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".CODE\n"); break;
 		case mp_mdoc: printf(".Bd -literal -offset indent\n"); break;
+		case mp_ms: puts(".DS I"); break;
 		default: printf(".in +4n\n.EX\n");
 			}
 		break;
@@ -343,6 +344,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".CODE OFF\n"); break;
 		case mp_mdoc: printf(".Ed\n"); break;
+		case mp_ms: puts(".DE"); break;
 		default: printf(".EE\n.in\n");
 			}
 		break;
@@ -579,6 +581,7 @@ void md2roff(const char *docname, const char *source)
 			puts(".\\# Author");
 			puts(".\\# .AI");
 			puts(".\\# Author's institution(s)");
+			puts(".\\# .ND date");
 			puts(".\\# .AB");
 			puts(".\\# Abstract; to be placed on the cover sheet of a paper.");
 			puts(".\\# Line length is 5/6 of normal; use .11 here to change.");
