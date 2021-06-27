@@ -1,4 +1,4 @@
-# md2roff 1 2021-03-09 "NDC Tools Collection"
+# md2roff 1 2021-06-27 "NDC Tools Collection"
 
 ## NAME
 md2roff \- converts markdown documents to roff (man, mdoc, ms, mm, mom).
