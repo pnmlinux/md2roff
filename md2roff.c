@@ -576,7 +576,12 @@ void md2roff(const char *docname, const char *source)
 		while ( isspace(*p) ) p ++;
 		if ( p[0] == '#' && isblank(p[1]) ) {
 			puts(".TL");
-			puts(p + 2);
+			p += 2;
+			char *pn = (char *) p;
+			while ( *pn && *pn != '\n' ) pn ++;
+			*pn = '\0';
+			puts(p);
+			p = (const char*) (pn + 1);
 			puts(".\\# .AU");
 			puts(".\\# Author");
 			puts(".\\# .AI");
