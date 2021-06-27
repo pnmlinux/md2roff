@@ -754,6 +754,11 @@ void md2roff(const char *docname, const char *source)
 						case 3: roff(new_ss); break;
 						case 4:
 						default:
+							if ( mpack == mp_ms ) {
+								roff(new_ss);
+								break;
+								}
+							
 							if ( mpack == mp_man ) {
 								d = flushln(d, dest);
 								printf(".TP\n");
