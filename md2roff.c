@@ -424,7 +424,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".HEADING 1 \""); break;
 		case mp_mdoc: printf(".Sh "); break;
-		case mp_ms: puts(".SH"); break; /* .SH\n...\n.LP|.PP\n */
+		case mp_ms: puts(".SH "); break; /* .SH\n...\n.LP|.PP\n */
 		default: printf(".SH ");
 			}
 		break;
@@ -434,7 +434,7 @@ void roff(int type, ...)
 		switch ( mpack ) {
 		case mp_mom:  printf(".HEADING 2 \""); break;
 		case mp_mdoc: printf(".Ss "); break;
-		case mp_ms: puts(".SH"); break;
+		case mp_ms: puts(".SH "); break;
 		default: printf(".SS ");
 			}
 		break;
@@ -443,7 +443,7 @@ void roff(int type, ...)
 	case new_s4:
 		switch ( mpack ) {
 		case mp_mom:  printf(".HEADING 3 \""); break;
-		case mp_ms: puts(".SH"); break;
+		case mp_ms: puts(".SH "); break;
 		case mp_mdoc: printf(".Ss "); break;
 		default: printf(".SS ");
 			}
@@ -824,6 +824,8 @@ void md2roff(const char *docname, const char *source)
 							continue;
 							}
 						p = println(p);
+						if ( mpack == mp_ms )
+							puts(".PP");
 						bline = true;
 						continue;
 						}
