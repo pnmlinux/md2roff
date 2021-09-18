@@ -14,6 +14,7 @@
  *		2021-02-13, SYNTAX and a few improvements for man-pages
  *		2021-03-09, v1.4
  *		2021-06-26, v1.5, ms package
+ *		2021-09-18, v1.6, option --synopsis-style
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License.
@@ -33,6 +34,7 @@
 typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom, mp_ms } macropackage_t;
 macropackage_t	mpack = mp_man;
 int	man_ofc = 0, write_lock = 0, std_q = 1;
+int opt_name_style = 0;
 typedef struct { const char *wrong, *correct; } dict_line_t;
 dict_line_t mdic[] = {
 { "bitmask", "bit mask" },
@@ -90,9 +92,9 @@ void panicif(int when, const char *fmt, ...)
 char *strdup(const char *s)
 {
 	char *d = (char *) malloc(strlen(s) + 1); 
-    if ( d )
+	if ( d )
 		strcpy(d, s);
-    return d;
+	return d;
 }
 
 /*
@@ -845,11 +847,12 @@ void md2roff(const char *docname, const char *source)
 					}
 				}
 			else if ( mpack == mp_man && strcmp(secname, "SYNOPSIS") == 0
-					&& strncmp(p, KEY_GNUSYN, strlen(KEY_GNUSYN)) == 0 ) { // SYNTAX BLOCK (.SY/.YS)
+					&& (opt_name_style == 2 || strncmp(p, KEY_GNUSYN, strlen(KEY_GNUSYN)) == 0) ) { // SYNTAX BLOCK (.SY/.YS)
 				bool first;
 				
 				d = flushln(d, dest);
-				p += strlen(KEY_GNUSYN);
+				if ( opt_name_style != 2 )
+					p += strlen(KEY_GNUSYN);
 				dcopy(".SY ");
 				while ( isspace(*p) ) p ++;
 				while ( *p && *p != '\n' ) *d ++ = *p ++;
@@ -906,9 +909,10 @@ void md2roff(const char *docname, const char *source)
 				continue;
 				}
 			else if ( mpack == mp_mdoc && strcmp(secname, "SYNOPSIS") == 0 && \
-					strncmp(p, KEY_GNUSYN, strlen(KEY_GNUSYN)) == 0 ) { // SYNTAX BLOCK (.Nm)
+					(opt_name_style == 3 || strncmp(p, KEY_GNUSYN, strlen(KEY_GNUSYN)) == 0) ) { // SYNTAX BLOCK (.Nm)
 				d = flushln(d, dest);
-				p += strlen(KEY_GNUSYN);
+				if ( opt_name_style != 3 )
+					p += strlen(KEY_GNUSYN);
 				dcopy(".Nm ");
 				while ( isspace(*p) ) p ++;
 				while ( *p && *p != '\n' ) *d ++ = *p ++;
@@ -943,9 +947,10 @@ void md2roff(const char *docname, const char *source)
 				continue;
 				}
 			else if ( mpack == mp_man && strcmp(secname, "SYNOPSIS") == 0
-					&& strncmp(p, KEY_NDCCMD, strlen(KEY_NDCCMD)) == 0 ) { // NDC's pretty style for commands
+					&& (opt_name_style == 1 || strncmp(p, KEY_NDCCMD, strlen(KEY_NDCCMD)) == 0) ) { // NDC's pretty style for commands
 				d = flushln(d, dest);
-				p += strlen(KEY_NDCCMD);
+				if ( opt_name_style != 1 )
+					p += strlen(KEY_NDCCMD);
 				int state = 'R';
 				dcopy("\\fB");
 				while ( isblank(*p) ) p ++;
@@ -1251,7 +1256,7 @@ void md2roff(const char *docname, const char *source)
 /*
  * --- main() ---
  */
-#define APPVER	"1.5"
+#define APPVER	"1.6"
 
 static char *usage ="\
 usage: md2roff [options] [file1 .. [fileN]]\n\
@@ -1262,6 +1267,7 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 \t-o, --mom\n\t\tuse mom package\n\
 \t-z, --man-official\n\t\ttry to be as official as man-pages(7)\n\
 \t-q, --non-std-q\n\t\tnon-standard emphasis/strong quotation\n\
+\t-pX,--synopsis-style=X\n\t\tFor man-pages, styles of SYNOPSIS section. where X, 0 = normal, 1 = md2roff highlight, 2 = .SY/.OP style, 3 = .Nm style\n\
 \t-h, --help\n\t\tprint this screen\n\
 \t-v, --version\n\t\tprint version information\n\
 ";
@@ -1304,6 +1310,14 @@ int main(int argc, char *argv[])
 				man_ofc = 1;
 			else if ( strcmp(argv[i], "-q") == 0 || strcmp(argv[i], "--non-std-q") == 0 )
 				std_q = 0;
+			else if ( strcmp(argv[i], "-p0") == 0 || strcmp(argv[i], "--synopsis-style=0") == 0 )
+				opt_name_style = 0;
+			else if ( strcmp(argv[i], "-p1") == 0 || strcmp(argv[i], "--synopsis-style=1") == 0 )
+				opt_name_style = 1;
+			else if ( strcmp(argv[i], "-p2") == 0 || strcmp(argv[i], "--synopsis-style=2") == 0 )
+				opt_name_style = 2;
+			else if ( strcmp(argv[i], "-p3") == 0 || strcmp(argv[i], "--synopsis-style=3") == 0 )
+				opt_name_style = 3;
 			else
 				fprintf(stderr, "unknown option: [%s]\n", argv[i]);
 			}

@@ -12,7 +12,7 @@ md2roff: md2roff.c
 	$(CC) $(CFLAGS) md2roff.c -o md2roff $(LDFLAGS) $(LIBS)
 
 md2roff.1.gz: md2roff.md md2roff
-	./md2roff md2roff.md > md2roff.1
+	./md2roff --synopsis-style=1 md2roff.md > md2roff.1
 	groff md2roff.1 -Tpdf -man -P -e > md2roff.1.pdf
 	gzip -f md2roff.1
 

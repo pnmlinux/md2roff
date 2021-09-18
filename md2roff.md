@@ -4,7 +4,7 @@
 md2roff \- converts markdown documents to roff (man, mdoc, ms, mm, mom).
 
 ## SYNOPSIS
-COMMAND: md2roff [{-n[-z]|-d|-m|-o}] [FILE] [-]
+md2roff [{-n[-z]|-d|-m|-o}] [FILE] [-]
 
 ## DESCRIPTION
 **md2roff** converts the input files to **groff** (with man package) format
@@ -34,6 +34,10 @@ use mdoc package (BSD man pages), see [groff_mdoc 7](man).
 #### -o, --mom
 use mom package, see [groff_mom 7](man).
 
+### -pX, --synopsis-style=X
+For man-page only.
+specify the style of the SYNOPSIS. Where X, 0 = default, 1 = md2roff highlight, 2 = .SY/.OP commands, 3 = .Nm commands.
+
 #### -z, --man-official
 try to use rules of [man-pages 7](man).
 
@@ -60,11 +64,13 @@ Example, link to [tcsh 1](man).
    separators/syntax-symbols in no-color, parameters in italics).
    COMMAND takes one text string as parameter which is the full expression of
    the syntax. For multi-line use special character backslash at the end of the line.
+   This is same to `--synopsis-style=1`
 
 5. For man and mdoc modes, there is a special keyword `SYNTAX:` in SYNOPSIS
    section that enables the syntax commands (.SY/.OP/.YS). Each line starts with
    `-` translated to .OP otherwise to .RI, except the first which is the command
    name.
+   This is same to `--synopsis-style=2`
 ```
 ## SYNOPSIS
 SYNTAX:
