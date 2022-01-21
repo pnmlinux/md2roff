@@ -1,8 +1,12 @@
 #
 #	GNU make
-# 
-PREFIX = /usr/local
-MANDIR = $(shell test -d $(PREFIX)/share/man && echo $(PREFIX)/share/man || echo $(PREFIX)/man)
+#
+
+prefix  ?= /usr/local
+bindir  ?= $(prefix)/bin
+mandir  ?= $(prefix)/share/man
+man1dir ?= $(mandir)/man1
+
 LIBS   = -lc 
 CFLAGS = -std=c99
 
@@ -17,12 +21,13 @@ md2roff.1.gz: md2roff.md md2roff
 	gzip -f md2roff.1
 
 install: md2roff md2roff.1.gz
-	install -m 0755 -s md2roff $(PREFIX)/bin
-	install -m 0644 md2roff.1.gz $(MANDIR)/man1
+	mkdir -p -m 0755 $(DESTDIR)$(bindir) $(DESTDIR)$(man1dir)
+	install -m 0755 -s md2roff $(DESTDIR)$(bindir)
+	install -m 0644 md2roff.1.gz $(DESTDIR)$(man1dir)
 
 uninstall:
-	-@rm $(PREFIX)/bin/md2roff
-	-@rm $(MANDIR)/man1/md2roff.1.gz
+	-@rm $(DESTDIR)$(bindir)/md2roff
+	-@rm $(DESTDIR)$(man1dir)/md2roff.1.gz
 
 clean:
 	-@rm *.o md2roff md2roff.1*
