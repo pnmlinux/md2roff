@@ -26,9 +26,8 @@ install: md2roff md2roff.1.gz
 	install -m 0644 md2roff.1.gz $(DESTDIR)$(man1dir)
 
 uninstall:
-	-@rm $(DESTDIR)$(bindir)/md2roff
-	-@rm $(DESTDIR)$(man1dir)/md2roff.1.gz
+	rm -f $(DESTDIR)$(bindir)/md2roff $(DESTDIR)$(man1dir)/md2roff.1.gz
 
 clean:
-	-@rm *.o md2roff md2roff.1*
+	rm -f *.o md2roff md2roff.1*
 
