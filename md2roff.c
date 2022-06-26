@@ -15,6 +15,7 @@
  *		2021-03-09, v1.4
  *		2021-06-26, v1.5, ms package
  *		2021-09-18, v1.6, option --synopsis-style
+ * 		2022-06-26, v1.7, regex added to support -z better
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License.
@@ -29,6 +30,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
+#include <regex.h>
 
 // options
 typedef enum { mp_mm, mp_man, mp_mdoc, mp_mom, mp_ms } macropackage_t;
@@ -67,6 +69,11 @@ dict_line_t mdic[] = {
 { "32bit", "32-bit" },
 { "Unices", "Unix systems" },
 { "Unixes", "Unix systems" },
+{ "manpage", "manual page" },
+{ "minus infinity", "negative infinity" },
+{ "non-root", "unprivileged user" },
+{ "non-superuser", "unprivileged user" },
+{ "nonprivileged", "unprivileged" },
 { NULL, NULL } };
 
 /*
@@ -145,6 +152,46 @@ char *sqzdup(const char *source)
 }
 
 /*
+ * regex find & replace
+ */
+char* regex_find_and_replace(const char *src, regex_t *re, const char *rp) {
+	size_t	size = 0x10000 + strlen(src);
+	char	*buf = (char *) malloc(size);
+	char	*pos;
+	int		sub, so, n;
+	regmatch_t pmatch[10]; /* regoff_t is int so size is int */
+
+	strcpy(buf, src);
+	if ( regexec(re, buf, 10, pmatch, 0) != REG_NOMATCH ) {
+		// first do preliminary replacements in the replacement text i.e. \1 -> first match
+		for ( pos = (char *) rp; *pos; pos ++ ) {
+			if (*pos == '\\' && *(pos + 1) > '0' && *(pos + 1) <= '9') {
+				so = pmatch [*(pos + 1) - 48].rm_so;
+				n = pmatch [*(pos + 1) - 48].rm_eo - so;
+				if ( so < 0 || strlen(rp) + n - 1 > size ) return buf;
+				memmove(pos + n, pos + 2, strlen(pos) - 1);
+				memmove(pos, buf + so, n);
+				pos = pos + n - 2;
+				}
+			}
+	
+		sub = pmatch [1].rm_so; // repeated replace when sub >= 0
+		for ( pos = buf; !regexec(re, pos, 1, pmatch, 0); ) {
+			n = pmatch [0].rm_eo - pmatch [0].rm_so;
+			pos += pmatch [0].rm_so;
+			if ( strlen(buf) - n + strlen(rp) + 1 > size )
+				break;
+			memmove(pos + strlen(rp), pos + n, strlen(pos) - n + 1);
+			memmove(pos, rp, strlen (rp));
+			pos += strlen(rp);
+			if ( sub >= 0 ) break;
+			}
+		}
+	
+	return realloc(buf, strlen(buf) + 1);
+	}
+	
+/*
  * Loads the `filename` file into memory and return a pointer to its contents.
  * The pointer must freed by the user.
  */
@@ -176,6 +223,21 @@ char *loadfile(const char *filename)
 		panicif((fread(buf, len, 1, fp) == -1), "fread failed");
 		buf[len] = '\0';
 		fclose(fp);
+		if ( man_ofc ) {
+			char pat[256], *np;
+			regex_t regex;
+			int reti;
+			for ( int i = 0; mdic[i].wrong; i ++ ) {
+				strcpy(pat, mdic[i].wrong);
+				reti = regcomp(&regex, pat, REG_EXTENDED | REG_ICASE);
+        		if ( reti == 0 ) { // compilation passed
+					np = regex_find_and_replace(buf, &regex, mdic[i].correct);
+					free(buf);
+					buf = np;
+					regfree(&regex);
+					}
+				}
+			}
 		}
 
 	return buf;
@@ -1256,7 +1318,7 @@ void md2roff(const char *docname, const char *source)
 /*
  * --- main() ---
  */
-#define APPVER	"1.6"
+#define APPVER	"1.7"
 
 static char *usage ="\
 usage: md2roff [options] [file1 .. [fileN]]\n\
@@ -1274,7 +1336,7 @@ usage: md2roff [options] [file1 .. [fileN]]\n\
 
 static char *version ="\
 md2roff, version "APPVER"\n\
-Copyright (C) 2017-2021 Nicholas Christopoulos <mailto:nereus@freemail.gr>.\n\
+Copyright (C) 2017-2022 Nicholas Christopoulos <mailto:nereus@freemail.gr>.\n\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n\
 This is free software: you are free to change and redistribute it.\n\
 There is NO WARRANTY, to the extent permitted by law.\n\

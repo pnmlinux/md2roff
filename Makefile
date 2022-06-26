@@ -7,7 +7,7 @@ bindir  ?= $(prefix)/bin
 mandir  ?= $(prefix)/share/man
 man1dir ?= $(mandir)/man1
 
-LIBS   = -lc 
+LIBS   = -lc
 CFLAGS = -std=c99
 
 all: md2roff md2roff.1.gz
@@ -18,6 +18,7 @@ md2roff: md2roff.c
 md2roff.1.gz: md2roff.md md2roff
 	./md2roff --synopsis-style=1 md2roff.md > md2roff.1
 	-groff md2roff.1 -Tpdf -man -P -e > md2roff.1.pdf
+	./md2roff -z --synopsis-style=1 md2roff.md > md2roff.1
 	gzip -f md2roff.1
 
 install: md2roff md2roff.1.gz
