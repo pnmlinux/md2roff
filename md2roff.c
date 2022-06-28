@@ -69,7 +69,10 @@ dict_line_t mdic[] = {
 { "32bit", "32-bit" },
 { "Unices", "Unix systems" },
 { "Unixes", "Unix systems" },
+{ "man page", "manual page" },
+{ "man pages", "manual pages" },
 { "manpage", "manual page" },
+{ "manpages", "manual pages" },
 { "minus infinity", "negative infinity" },
 { "non-root", "unprivileged user" },
 { "non-superuser", "unprivileged user" },
@@ -224,9 +227,7 @@ char *loadfile(const char *filename) {
 			regex_t regex;
 			int reti;
 			for ( int i = 0; mdic[i].wrong; i ++ ) {
-				strcpy(pat, "(^|\\s)");
-				strcat(pat, mdic[i].wrong);
-				strcat(pat, "(\\s|$|\\.)");
+				strcpy(pat, mdic[i].wrong);
 				reti = regcomp(&regex, pat, REG_EXTENDED | REG_ICASE);
         		if ( reti == 0 ) { // compilation passed
 					np = regex_find_and_replace(buf, &regex, mdic[i].correct);
