@@ -79,8 +79,7 @@ dict_line_t mdic[] = {
 /*
  * if 'when' is true, print error message and quit
  */
-void panicif(int when, const char *fmt, ...)
-{
+void panicif(int when, const char *fmt, ...) {
 	char	msg[1024];
 	va_list	ap;
 	
@@ -91,24 +90,22 @@ void panicif(int when, const char *fmt, ...)
 		exit(EXIT_FAILURE);
 		}
 	va_end(ap);
-}
+	}
 
 /*
  * clone string
  */
-char *strdup(const char *s)
-{
+char *strdup(const char *s) {
 	char *d = (char *) malloc(strlen(s) + 1); 
 	if ( d )
 		strcpy(d, s);
 	return d;
-}
+	}
 
 /*
  *	squeeze (& strdup)
  */
-char *sqzdup(const char *source)
-{
+char *sqzdup(const char *source) {
 	char *rp, *p, *d;
 	int lc = 0;
 
@@ -149,7 +146,7 @@ char *sqzdup(const char *source)
 		}
 	
 	return rp;
-}
+	}
 
 /*
  * regex find & replace
@@ -195,8 +192,7 @@ char* regex_find_and_replace(const char *src, regex_t *re, const char *rp) {
  * Loads the `filename` file into memory and return a pointer to its contents.
  * The pointer must freed by the user.
  */
-char *loadfile(const char *filename)
-{
+char *loadfile(const char *filename) {
 	int len = -1, c, alloc;
 	FILE *fp;
 	char *buf;
@@ -228,7 +224,9 @@ char *loadfile(const char *filename)
 			regex_t regex;
 			int reti;
 			for ( int i = 0; mdic[i].wrong; i ++ ) {
-				strcpy(pat, mdic[i].wrong);
+				strcpy(pat, "(^|\\s)");
+				strcat(pat, mdic[i].wrong);
+				strcat(pat, "(\\s|$|\\.)");
 				reti = regcomp(&regex, pat, REG_EXTENDED | REG_ICASE);
         		if ( reti == 0 ) { // compilation passed
 					np = regex_find_and_replace(buf, &regex, mdic[i].correct);
@@ -241,28 +239,26 @@ char *loadfile(const char *filename)
 		}
 
 	return buf;
-}
+	}
 
 /*
  * adds the string 'str' to buffer 'buf' and returns
  * a pointer to new position in buf.
  */
-char *stradd(char *buf, const char *str)
-{
+char *stradd(char *buf, const char *str) {
 	const char *p = str;
 	char *d = buf;
 
 	while ( *p )
 		*d ++ = *p ++;
 	return d;
-}
+	}
 
 /*
  * prints the whole line of 'src' and returns pointer
  * to the next character (the first of the next line).
  */
-const char *println(const char *src)
-{
+const char *println(const char *src) {
 	const char *p = src;
 
 	while ( *p ) {
@@ -273,7 +269,7 @@ const char *println(const char *src)
 			break;
 		}
 	return p;
-}
+	}
 
 /*
 *	types of elements
@@ -300,8 +296,7 @@ int		stk_list_p = 0;				// top pointer, always points to first free
 /*
 *	write the roff code of 'type'
 */
-void roff(int type, ...)
-{
+void roff(int type, ...) {
 	va_list	ap;
 	char	*title, *link;
 	char	punc;
@@ -541,13 +536,12 @@ void roff(int type, ...)
 		}
 	
 	va_end(ap);
-}
+	}
 
 /*
  *  write buffer and reset
  */
-char *flushln(char *d, char *bf)
-{
+char *flushln(char *d, char *bf) {
 	if ( d > bf ) {
 		*d = '\0';
 		d = bf;
@@ -560,7 +554,7 @@ char *flushln(char *d, char *bf)
 			}
 		}
 	return bf;
-}
+	}
 
 /*
  *	this converts the file 'docname',
@@ -574,8 +568,7 @@ static char *month[] = {
 NULL };
 
 //
-const char *get_man_header(const char *source, char *name, char *section, char *date)
-{
+const char *get_man_header(const char *source, char *name, char *section, char *date) {
 	const char *p = source;
 	char *d;
 	
@@ -611,11 +604,10 @@ const char *get_man_header(const char *source, char *name, char *section, char *
 		}
 	
 	return p;
-}
+	}
 
 #define dcopy(c) { for ( const char *s = (c); *s; *d ++ = *s ++ ); }
-void md2roff(const char *docname, const char *source)
-{
+void md2roff(const char *docname, const char *source) {
 	const char *p = source, *pnext, *pstart;
 	char	*dest, *d;
 	bool	bline = true, bcode = false;
@@ -807,6 +799,7 @@ void md2roff(const char *docname, const char *source)
 										|| strcmp(secname, "AUTHOR") == 0 \
 										|| strcmp(secname, "HOMEPAGE") == 0 \
 										|| strcmp(secname, "REPORTING BUGS") == 0 \
+										|| strcmp(secname, "AUTHOR") == 0 \
 										|| strcmp(secname, "AUTHORS") == 0 )
 									write_lock = 1;
 								else
@@ -1313,7 +1306,7 @@ void md2roff(const char *docname, const char *source)
 	d = flushln(d, dest);
 
 	free(dest);
-}
+	}
 
 /*
  * --- main() ---
@@ -1342,8 +1335,7 @@ This is free software: you are free to change and redistribute it.\n\
 There is NO WARRANTY, to the extent permitted by law.\n\
 ";
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	int files[64];
 	int fc = 0;
 	
@@ -1396,5 +1388,5 @@ int main(int argc, char *argv[])
 		}
 
 	return EXIT_SUCCESS;
-}
+	}
 
