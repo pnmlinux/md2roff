@@ -578,7 +578,7 @@ const char *get_man_header(const char *source, char *name, char *section, char *
 	d = name;
 	while ( *p ) {
 		if ( isspace(*p) ) break;
-		if ( name - d >= MAX_STR ) break;
+		if ( d - name >= MAX_STR ) break;
 		*d ++ = toupper(*p ++);
 		}
 	*d = '\0';
@@ -587,7 +587,7 @@ const char *get_man_header(const char *source, char *name, char *section, char *
 	d = section;
 	while ( *p ) {
 		if ( isspace(*p) ) break;
-		if ( section - d >= MAX_STR ) break;
+		if ( d - section >= MAX_STR ) break;
 		*d ++ = *p ++;
 		}
 	*d = '\0';
@@ -597,7 +597,7 @@ const char *get_man_header(const char *source, char *name, char *section, char *
 		d = date;
 		while ( *p ) {
 			if ( isspace(*p) ) break;
-			if ( date - d >= MAX_STR ) break;
+			if ( d - date >= MAX_STR ) break;
 			*d ++ = *p ++;
 			}
 		*d = '\0';
