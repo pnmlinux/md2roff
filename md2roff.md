@@ -46,7 +46,10 @@ try to use rules of [man-pages 7](man).
 otherwise there will be a default TH with the file-name. Actually only the
 title (name) and section are required. See [man-pages 7](man).
 ```
+... example
 # title section date source manual
+... sed manual page:
+# SED 1 "January 2020" "sed 4.8" "User Commands"
 ```
 
 2. If you write man page, use `####` for each option to automatically convert
