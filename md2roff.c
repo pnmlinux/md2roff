@@ -569,6 +569,7 @@ static char *month[] = {
 NULL };
 
 //
+#define MAX_STR	255
 const char *get_man_header(const char *source, char *name, char *section, char *date) {
 	const char *p = source;
 	char *d;
@@ -577,6 +578,7 @@ const char *get_man_header(const char *source, char *name, char *section, char *
 	d = name;
 	while ( *p ) {
 		if ( isspace(*p) ) break;
+		if ( name - d >= MAX_STR ) break;
 		*d ++ = toupper(*p ++);
 		}
 	*d = '\0';
@@ -585,6 +587,7 @@ const char *get_man_header(const char *source, char *name, char *section, char *
 	d = section;
 	while ( *p ) {
 		if ( isspace(*p) ) break;
+		if ( section - d >= MAX_STR ) break;
 		*d ++ = *p ++;
 		}
 	*d = '\0';
@@ -594,6 +597,7 @@ const char *get_man_header(const char *source, char *name, char *section, char *
 		d = date;
 		while ( *p ) {
 			if ( isspace(*p) ) break;
+			if ( date - d >= MAX_STR ) break;
 			*d ++ = *p ++;
 			}
 		*d = '\0';
@@ -615,7 +619,7 @@ void md2roff(const char *docname, const char *source) {
 	bool	bold = false, italics = false;
 	bool	inside_list = false;
 	bool	title_level = 0;
-	char	secname[256], appname[64], appsec[64], appdate[64];
+	char	secname[256], appname[256], appsec[256], appdate[256];
 
 	stk_list_p = 0; // reset stack
 	secname[0] = '\0';
