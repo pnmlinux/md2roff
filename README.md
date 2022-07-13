@@ -10,11 +10,6 @@ Requires:
 
 Alpha but it does the job.
 
-80% : man format
-60% : mdoc format
-60% : mom format
---- : mm format
-
 ## Install
 
 ```shell

@@ -1346,6 +1346,11 @@ void md2roff(const char *docname, const char *source) {
 				continue;
 				}
 			}
+		else if ( *p == '[' && *(p+1) == '^' ) {
+			*d ++ = *p ++;
+			p ++;
+			continue;
+			}
 		else {
 			*d = *p;
 			d ++;
