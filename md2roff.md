@@ -34,7 +34,7 @@ use mdoc package (BSD man pages), see [groff_mdoc 7](man).
 #### -o, --mom
 use mom package, see [groff_mom 7](man).
 
-### -pX, --synopsis-style=X
+#### -pX, --synopsis-style=X
 For man-page only.
 specify the style of the SYNOPSIS. Where X, 0 = default, 1 = md2roff highlight, 2 = .SY/.OP commands, 3 = .Nm commands.
 
