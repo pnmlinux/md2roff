@@ -293,6 +293,7 @@ enum { none,
 int		stk_list[MAX_LIST_SIZE];	// type of list
 int		stk_count[MAX_LIST_SIZE];	// counter of item
 int		stk_list_p = 0;				// top pointer, always points to first free
+int		bq_level = 0, prev_bq_level = 0;
 
 /*
 *	write the roff code of 'type'
@@ -308,6 +309,21 @@ void roff(int type, ...) {
 		return;
 		}
 	va_start(ap, type);
+
+	//
+	if ( bq_level != prev_bq_level ) {
+		if ( bq_level > prev_bq_level ) {
+			for ( int i = bq_level; i < prev_bq_level; i ++ )
+				printf(".RS\n");
+			}
+		else {
+			for ( int i = prev_bq_level; i < bq_level; i ++ )
+				printf(".RE\n");
+			}
+		prev_bq_level = bq_level;
+		}
+	
+	//
 	switch ( type ) {
 
 	// new paragraph
@@ -769,7 +785,14 @@ void md2roff(const char *docname, const char *source) {
 		//////////////////////////////////
 		if ( bline ) {
 			bline = false;
-			
+
+			//
+			bq_level = 0;
+			if ( *p == '>' ) { // blockquote
+				while ( *p == '>' ) { p ++; bq_level ++; }
+				}
+
+			//
 			if ( *p == '\n' ) { // empty line
 				d = flushln(d, dest);
 				
