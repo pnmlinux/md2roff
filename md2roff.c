@@ -16,6 +16,7 @@
  *		2021-06-26, v1.5, ms package
  *		2021-09-18, v1.6, option --synopsis-style
  * 		2022-06-26, v1.7, regex added to support -z better
+ * 		2022-07-13, v1.8, blockquotes
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License.
@@ -1339,7 +1340,7 @@ void md2roff(const char *docname, const char *source) {
 /*
  * --- main() ---
  */
-#define APPVER	"1.7"
+#define APPVER	"1.8"
 
 static char *usage ="\
 usage: md2roff [options] [file1 .. [fileN]]\n\
