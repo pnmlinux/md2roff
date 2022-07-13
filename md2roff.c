@@ -313,20 +313,23 @@ void roff(int type, ...) {
 
 	//
 	if ( bq_level != prev_bq_level ) {
-		if ( bq_level > prev_bq_level ) {
-			for ( int i = bq_level; i < prev_bq_level; i ++ )
-				printf(".RS\n");
+		int i;
+		if ( bq_level < prev_bq_level ) {
+			for ( i = bq_level; i < prev_bq_level; i ++ )
+				puts(".RE");
 			}
 		else {
-			for ( int i = prev_bq_level; i < bq_level; i ++ )
-				printf(".RE\n");
+			for ( i = prev_bq_level; i < bq_level; i ++ )
+				puts(".RS");
 			}
 		prev_bq_level = bq_level;
 		}
 	
 	//
 	switch ( type ) {
-
+	case none:
+		break;
+		
 	// new paragraph
 	case par_end:
 		switch ( mpack ) {
@@ -786,11 +789,12 @@ void md2roff(const char *docname, const char *source) {
 		//////////////////////////////////
 		if ( bline ) {
 			bline = false;
-
-			//
 			bq_level = 0;
-			if ( *p == '>' ) { // blockquote
+			if ( *p == '>' ) { // open blockquote
 				while ( *p == '>' ) { p ++; bq_level ++; }
+				d = flushln(d, dest);
+				roff(none);
+				d = flushln(d, dest);
 				}
 
 			//
