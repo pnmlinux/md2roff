@@ -1298,8 +1298,12 @@ void md2roff(const char *docname, const char *source) {
 		//	generic link syntax  [text](link)
 		//	image link syntax	![text](link)
 		//	man page syntax      [page section](man)
+		//  cite				 [^digit]
 		//
-		else if ( *p == '[' || (*p == '!' && *(p+1) == '[') ) { // markdown link
+		else if (
+				 ( *p == '[' && *(p+1) != '^' ) ||
+				 ( *p == '!' && *(p+1) == '[' )
+				) { // markdown link
 			const char *pfin;
 			bool bimg = false;
 			if ( *p == '!' ) {
