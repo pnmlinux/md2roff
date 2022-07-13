@@ -285,6 +285,7 @@ enum { none,
 		bq_open, bq_close,
 		box_open, box_close,
 		url_mark,
+		tbl_open, tbl_close,
 		new_sh, new_ss, new_s4 };
 
 /*
@@ -526,6 +527,18 @@ void roff(int type, ...) {
 		case mp_ms: puts(".SH "); break;
 		case mp_mdoc: printf(".Ss "); break;
 		default: printf(".SS ");
+			}
+		break;
+
+	// table
+	case tbl_open:
+		switch ( mpack ) {
+		default: printf(".TS\ntab(|);\n.\n");
+			}
+		break;
+	case tbl_close:
+		switch ( mpack ) {
+		default: printf(".TE\n");
 			}
 		break;
 
