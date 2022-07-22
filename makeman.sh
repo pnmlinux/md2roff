@@ -25,7 +25,7 @@
 
 # Variables
 export CWD="${PWD}" TAB="$(printf '\t')"
-export status="true" section="1" version="1.0.0" SETUPTEMPLATE="disable" PROJECT="mydoc"
+export status="true" section="1" version="1.8.0" SETUPTEMPLATE="disable" PROJECT="mydoc"
 export requirements=(
     "md2roff"
     "mkdir"
@@ -37,20 +37,6 @@ export requirements=(
 )
 
 # Functions
-makeman:tmpm() {
-    case "${1}" in
-        open)
-            shift
-        ;;
-        close)
-            shift
-        ;;
-        *)
-            :
-        ;;
-    esac
-}
-
 makeman:templatem() {
     if [[ "${#}" -ge 1 ]] ; then
         case "${1}" in
@@ -219,7 +205,7 @@ else
                 rm -rf "${CWD}/${MARKDOWN##*/}.${section}"
             fi
         else
-            echo -e "\t${0##*/}: wrong usage, please type 'bash ${0##*/} --help' for more information."
+            echo -e "wrong usage, please type 'bash ${0##*/} --help' for more information."
             exit 1
         fi
     fi
