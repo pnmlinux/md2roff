@@ -150,7 +150,7 @@ if [[ "${SETMODE}" = "version" ]] ; then
     echo "${version}"
 elif [[ "${SETMODE}" = "help" ]] ; then
     cat <<HELP
-${0##*/}v${version}
+${0##*/} v${version}
 
 There are 7 flags for ${0##*/}:
 ${TAB}--project, -pr <parameter>
